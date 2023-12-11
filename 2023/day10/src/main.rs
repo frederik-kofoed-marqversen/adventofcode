@@ -66,11 +66,11 @@ fn main() {
     println!("Result part 1: {}", steps / 2);
 
     // PART 2
-    // Up to a sign (orientation of path) `integral` is the internal area of the path
+    // Up to a sign (orientation of path) `integral` is the internal area of the line path
     // We must remove the contribution from the path having finite width
     // For a closed rectangular path, non-corner path segments contribute half a square
-    // and the four corners contribute each 1/4th for a total of 1 square.
-    // A general closed path all corners except four outside corners, 
+    // and the 4 corners contribute each 1/4th for a total of 1 square.
+    // For a general closed path, all corners except four outside corners, 
     // pair up such that on average they contribute half a square.
     // The formula thus holds for any closed path.
 
