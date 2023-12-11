@@ -17,26 +17,20 @@ fn main() {
         }
     }
 
-    // integration only works if path is possitively oriented.
-    // Starting direction must be 'S' for input 'W' for test
+    // Turns out starting direction can be 'S' for all inputs
     let mut direction = 'S';
     let mut steps = 0;
-    let mut integral: i32 = 1;  // Initiate at 1 to count the starting position
+    let mut integral: i32 = 0;
 
     loop { // Walk through path
         // Take step
         steps +=1;
         match direction {
-            'N' => {
-                position.0 -=1;
-                integral += 1;
-            },
-            'S' => {
-                position.0 += 1;
-            },
+            'N' => position.0 -=1,
+            'S' => position.0 += 1,
             'E' => {
                 position.1 += 1;
-                integral += position.0 as i32 + 1;
+                integral += position.0 as i32;
             },
             'W' => {
                 position.1 -= 1;
@@ -51,8 +45,7 @@ fn main() {
         // Read map and get direction for next step
         match (map[position.0][position.1], direction) {
             ('S', _) => break,
-            ('|', _) => {},
-            ('-', _) => {},
+            ('|' | '-', _) => {},
             ('F', 'N') => {direction = 'E';},
             ('F', 'W') => {direction = 'S';},
             ('7', 'E') => {direction = 'S';},
@@ -67,13 +60,22 @@ fn main() {
             },
         };
     }
+    // dbg!(&integral, &steps);
 
     // PART 1
     println!("Result part 1: {}", steps / 2);
 
     // PART 2
-    dbg!(&integral, &steps);
-    println!("Result part 2: {}", integral - steps);
+    // Up to a sign (orientation of path) `integral` is the internal area of the path
+    // We must remove the contribution from the path having finite width
+    // For a closed rectangular path, non-corner path segments contribute half a square
+    // and the four corners contribute each 1/4th for a total of 1 square.
+    // A general closed path all corners except four outside corners, 
+    // pair up such that on average they contribute half a square.
+    // The formula thus holds for any closed path.
+
+    let path_internal_area = (steps - 4) / 2 + 1;
+    println!("Result part 2: {}", integral.abs() - path_internal_area);
 }
 
 fn parse_file(filepath: &str) -> Result<DataStruct, std::io::Error> {
