@@ -4,7 +4,7 @@ use std::io::{BufRead, BufReader};
 type DataStruct = Vec<Vec<char>>;
 
 fn main() {
-    let map = parse_file("./test.data").unwrap();
+    let map = parse_file("./input.data").unwrap();
     // dbg!(&map);
 
     // Find the starting position 'S'
