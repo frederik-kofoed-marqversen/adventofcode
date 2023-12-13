@@ -4,7 +4,7 @@ use std::io::{BufRead, BufReader};
 type DataStruct = Vec<Vec<char>>;
 
 fn main() {
-    let map = parse_file("./input.data").unwrap();
+    let mut map = parse_file("./input.data").unwrap();
     // dbg!(&map);
 
     // Find the starting position 'S'
@@ -23,6 +23,15 @@ fn main() {
     let mut integral: i32 = 0;
 
     loop { // Walk through path
+        // (Only needed for part 2 alternative solution)
+        // When shifting the path down by half a cell only 'J's, 'L's and '|'s are seen as vertical lines
+        match map[position.0][position.1] {
+            'J' => map[position.0][position.1] = '*',
+            'L' => map[position.0][position.1] = '*',
+            '|' => map[position.0][position.1] = '*',
+            _ => map[position.0][position.1] = 'o',
+        };
+        
         // Take step
         steps +=1;
         match direction {
@@ -46,14 +55,14 @@ fn main() {
         match (map[position.0][position.1], direction) {
             ('S', _) => break,
             ('|' | '-', _) => {},
-            ('F', 'N') => {direction = 'E';},
-            ('F', 'W') => {direction = 'S';},
-            ('7', 'E') => {direction = 'S';},
-            ('7', 'N') => {direction = 'W';},
-            ('J', 'E') => {direction = 'N';},
-            ('J', 'S') => {direction = 'W';},
-            ('L', 'S') => {direction = 'E';},
-            ('L', 'W') => {direction = 'N';},
+            ('F', 'N') => direction = 'E',
+            ('F', 'W') => direction = 'S',
+            ('7', 'E') => direction = 'S',
+            ('7', 'N') => direction = 'W',
+            ('J', 'E') => direction = 'N',
+            ('J', 'S') => direction = 'W',
+            ('L', 'S') => direction = 'E',
+            ('L', 'W') => direction = 'N',
             _ => {
                 dbg!("bad state");
                 break
@@ -76,6 +85,21 @@ fn main() {
 
     let path_internal_area = (steps - 4) / 2 + 1;
     println!("Result part 2: {}", integral.abs() - path_internal_area);
+
+    // PART 2 (initial solution)
+    // Rays eminating from internal points will intersect the path an even number of times
+    // Check all points individually
+    let mut num_internal_points = 0;
+    for row in map.iter() {
+        for (j, c) in row.iter().enumerate() {
+            if ['*', 'o'].contains(c) {
+                continue;
+            }
+            let intersections = row[j..].iter().filter(|&&x| x=='*').count();
+            num_internal_points += intersections % 2;
+        }
+    }
+    println!("Result part 2 (alternative): {num_internal_points}",);
 }
 
 fn parse_file(filepath: &str) -> Result<DataStruct, std::io::Error> {
