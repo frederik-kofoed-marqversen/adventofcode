@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use cached::proc_macro::cached;
 
 type DataStruct = Vec<(Vec<char>, Vec<usize>)>;
 
@@ -7,14 +8,17 @@ fn main() {
     let input = parse_file("./input.data").unwrap();
     // dbg!(&input);
 
+    // PART 1
     let mut num_permutations = Vec::new();
     for (sequence, groups) in &input {
-        num_permutations.push(combinations(&sequence[..], &groups[..]));
+        num_permutations.push(combinations(sequence.clone(), groups.clone()));
     }
     // dbg!(&num_permutations);
 
-    println!("Result part 1: {}", num_permutations.iter().sum::<u32>());
+    println!("Result part 1: {}", num_permutations.iter().sum::<u64>());
 
+    // PART 2
+    // The solution turns out to be caching the recursive function!
     let mut num_permutations = Vec::new();
     for (mut sequence, mut groups) in input {
         sequence.push('?');
@@ -22,13 +26,14 @@ fn main() {
         sequence.pop();
         
         groups = groups.repeat(5);
-        num_permutations.push(combinations(&sequence[..], &groups[..]));
+        num_permutations.push(combinations(sequence, groups));
     }
     // dbg!(&num_permutations);
-    println!("Result part 2: {}", num_permutations.iter().sum::<u32>());
+    println!("Result part 2: {}", num_permutations.iter().sum::<u64>());
 }
 
-fn combinations(sequence: &[char], groups: &[usize]) -> u32 {
+#[cached]
+fn combinations(sequence: Vec<char>, groups: Vec<usize>) -> u64 {
     if groups.len() == 0 {
         return if sequence.iter().any(|x| x==&'#') {0} else {1}
     }
@@ -49,7 +54,7 @@ fn combinations(sequence: &[char], groups: &[usize]) -> u32 {
         }
         
         // group can be here
-        result += combinations(&sequence[(end+2).min(sequence.len())..], &groups[1..]);
+        result += combinations(sequence[(end+2).min(sequence.len())..].to_vec(), groups[1..].to_vec());
     }
     
     return result
