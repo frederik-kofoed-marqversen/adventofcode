@@ -69,15 +69,7 @@ fn gcd(mut a: u64, mut b: u64) -> u64 {
 
 fn lcm(a: u64, b:u64) -> u64 {
     // Least Common Multiple of `a` and `b`
-    let (mut am, mut bm) = (a, b);
-    while am != bm {
-        if am < bm {
-            am += a;
-        } else {
-            bm += b;
-        }
-    }
-    return am
+    return (a * b) / gcd(a, b)
 }
 
 fn bezout(a: i64, b: i64) -> (i64, i64, i64) {
