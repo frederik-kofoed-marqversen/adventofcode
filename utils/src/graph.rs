@@ -1,4 +1,4 @@
-use std::collections::{BinaryHeap, HashMap};
+use std::collections::{BinaryHeap, HashMap, VecDeque, HashSet};
 use std::fmt::Debug;
 use std::hash::Hash;
 
@@ -64,12 +64,12 @@ where
     }
 
     // Add edge from -> to. Create nodes if not present.
-    pub fn add_directed_edge(&mut self, from: T, to: T, weight: Option<U>) {
+    pub fn add_directed_edge(&mut self, from: T, to: T, weight: U) {
         self.add_node(to.clone());
         self.data
             .entry(from)
             .or_insert(HashMap::new())
-            .insert(to, weight.unwrap_or_default());
+            .insert(to, weight);
     }
     pub fn remove_directed_edge(&mut self, from: T, to: T) {
         self.data.entry(from).and_modify(|x| {
@@ -78,7 +78,7 @@ where
     }
 
     // Add edge u -> v and v -> u. Create nodes if not present.
-    pub fn add_edge(&mut self, u: T, v: T, weight: Option<U>) {
+    pub fn add_edge(&mut self, u: T, v: T, weight: U) {
         self.add_directed_edge(u.clone(), v.clone(), weight.clone());
         self.add_directed_edge(v, u, weight);
     }
@@ -99,6 +99,21 @@ where
     fn index(&self, key: &T) -> &Self::Output {
         &self.data[key]
     }
+}
+
+pub fn grid_graph_2d(n: usize, m: usize) -> Graph<(usize, usize), u64> {
+    let mut graph = Graph::new();
+    for i in 0..n - 1 {
+        for j in 0..m {
+            graph.add_edge((i, j), (i + 1, j), 1);
+        }
+    }
+    for j in 0..m - 1 {
+        for i in 0..n {
+            graph.add_edge((i, j), (i, j + 1), 1);
+        }
+    }
+    return graph;
 }
 
 // Path finding
@@ -252,33 +267,106 @@ where
     }
 }
 
-impl<T, U> Graph<T, U>
+// Max-flow min-cut
+impl<T> Graph<T, i64>
 where
     T: Debug + Clone + Hash + Eq,
-    U: Default + Clone,
 {
-    pub fn max_flow() {
+    pub fn max_flow(&self, source: &T, sink: &T) -> Option<(i64, Self)> {
         // Edmond Karp: https://en.wikipedia.org/wiki/Ford%E2%80%93Fulkerson_algorithm
-    }
+        let mut flow = Self::new();
+        let mut flow_amount = 0;
+        for node in self.iter() {
+            for neighbour in self.neighbours::<Vec<_>>(node) {
+                flow.add_edge(node.clone(), neighbour, 0);
+            }
+        }
 
-    pub fn min_cut() {
-        // Max-flow min-cut: https://en.wikipedia.org/wiki/Max-flow_min-cut_theorem
-    }
-}
+        loop {
+            // Do a breadth-first search to find shortest path between source and sink.
+            let mut queue = VecDeque::from([source]);
+            let mut predecessor = HashMap::<T, (T, i64)>::new();
+            while let Some(vertex) = queue.pop_front() {
+                let capacities = &self[vertex];
+                for (neighbour, current_flow) in &flow[vertex] {
+                    let capacity = capacities.get(neighbour).unwrap_or(&0);
+                    let residual_capacity = capacity - current_flow;
+                    // Only admit paths that has capacity left
+                    if !predecessor.contains_key(neighbour)
+                        && residual_capacity > 0
+                        && neighbour != source
+                    {
+                        predecessor.insert(neighbour.clone(), (vertex.clone(), residual_capacity));
+                        if neighbour == sink {
+                            break;
+                        }
+                        queue.push_back(neighbour);
+                    };
+                }
+            }
 
-pub fn grid_graph_2d(n: usize, m: usize) -> Graph<(usize, usize), u64> {
-    let mut graph = Graph::new();
-    for i in 0..n-1 {
-        for j in 0..m {
-            graph.add_edge((i, j), (i+1, j), Some(1));
+            if !predecessor.contains_key(sink) {
+                // No path with capacity exists => no more flow can be added
+                return Some((flow_amount, flow));
+            } else {
+                // Have found a path with capacity
+                let mut path_capacity = i64::MAX;
+                let mut vertex = sink;
+                while let Some((predecessor, capacity)) = predecessor.get(vertex) {
+                    path_capacity = path_capacity.min(*capacity);
+                    vertex = predecessor;
+                }
+                // Add this path to flow
+                flow_amount += path_capacity;
+                vertex = sink;
+                while let Some((predecessor, _)) = predecessor.get(&vertex) {
+                    // Add flow to predecessor -> vertex
+                    flow.data.entry(predecessor.clone()).and_modify(|map| {
+                        map.entry(vertex.clone()).and_modify(|val| {
+                            *val += path_capacity;
+                        });
+                    });
+                    // Remove flow from vertex -> predecessor
+                    flow.data.entry(vertex.clone()).and_modify(|map| {
+                        map.entry(predecessor.clone()).and_modify(|val| {
+                            *val -= path_capacity;
+                        });
+                    });
+
+                    vertex = predecessor;
+                }
+            }
         }
     }
-    for j in 0..m-1 {
-        for i in 0..n {
-            graph.add_edge((i, j), (i, j+1), Some(1));
+
+    pub fn min_cut(&self, a: &T, b: &T) -> Option<(i64, (HashSet<T>, HashSet<T>))>{
+        // Computes the capacity of the min-cut and a partition induced by the cut
+        // Such a partition is non-unique
+        // Max-flow min-cut theorem states: min-cut = max-flow
+        
+        // : https://en.wikipedia.org/wiki/Max-flow_min-cut_theorem
+        let (max_flow, flow) = match self.max_flow(a, b) {
+            Some(val) => val,
+            _ => return None,
+        };
+
+        // The first subset contains the vetices that are still flow-connected to a.
+        let mut g1 = HashSet::from([a.clone()]);
+        let mut queue = VecDeque::from([a]);
+        while let Some(vertex) = queue.pop_front() {
+            let flows = &flow[&vertex];
+            for (neighbour, capacity) in &self[&vertex] {
+                if !g1.contains(&neighbour) && capacity > &flows[&neighbour] {
+                    queue.push_back(&neighbour);
+                    g1.insert(neighbour.clone());
+                }
+                
+            }
         }
+        // The other subset contains all other nodes
+        let g2 = self.nodes::<HashSet<_>>().difference(&g1).cloned().collect();
+        return Some((max_flow, (g1, g2)));
     }
-    return graph
 }
 
 #[cfg(test)]
@@ -289,9 +377,9 @@ mod tests {
 
     #[test]
     fn graph_manipulations() {
-        let mut graph: Graph<u8, u64> = Graph::new();
-        graph.add_edge(0, 1, None);
-        graph.add_edge(1, 2, None);
+        let mut graph: Graph<u8, ()> = Graph::new();
+        graph.add_edge(0, 1, ());
+        graph.add_edge(1, 2, ());
         graph.remove_node(1);
 
         // Removing edges should not create nodes.
@@ -337,8 +425,8 @@ mod tests {
             [0, 0, 0, 1, 0],
         ];
         let n = maze.len();
-        let (start, end) = ((0, 0), (n-1, n-1));
-        
+        let (start, end) = ((0, 0), (n - 1, n - 1));
+
         let mut graph = grid_graph_2d(n, n);
         for (i, row) in maze.iter().enumerate() {
             for (j, num) in row.iter().enumerate() {
@@ -349,14 +437,56 @@ mod tests {
         }
 
         // Manhattan distance to end
-        let heuristic = |pos: &(usize, usize)| (pos.0.abs_diff(end.0) + pos.1.abs_diff(end.1)) as u64;
+        let heuristic =
+            |pos: &(usize, usize)| (pos.0.abs_diff(end.0) + pos.1.abs_diff(end.1)) as u64;
         let sol_dijkstra = graph.a_star(start, end, None);
         let sol_a_star = graph.a_star(start, end, Some(&heuristic));
 
         assert_eq!(sol_dijkstra, sol_a_star);
         assert_eq!(
             sol_a_star,
-            Some((8, vec![(0, 0), (0, 1), (0, 2), (1, 2), (1, 3), (1, 4), (2, 4), (3, 4), (4, 4)]))
+            Some((
+                8,
+                vec![
+                    (0, 0),
+                    (0, 1),
+                    (0, 2),
+                    (1, 2),
+                    (1, 3),
+                    (1, 4),
+                    (2, 4),
+                    (3, 4),
+                    (4, 4)
+                ]
+            ))
         );
+    }
+
+    #[test]
+    fn max_flow_min_cut() {
+        // Example taken from https://en.wikipedia.org/wiki/Edmonds%E2%80%93Karp_algorithm
+        let mut graph = Graph::new();
+        graph.add_directed_edge('A', 'B', 3);
+        graph.add_directed_edge('A', 'D', 3);
+        graph.add_directed_edge('B', 'C', 4);
+        graph.add_directed_edge('C', 'A', 3);
+        graph.add_directed_edge('C', 'D', 1);
+        graph.add_directed_edge('C', 'E', 2);
+        graph.add_directed_edge('D', 'E', 2);
+        graph.add_directed_edge('D', 'F', 6);
+        graph.add_directed_edge('E', 'B', 1);
+        graph.add_directed_edge('E', 'G', 1);
+        graph.add_directed_edge('F', 'G', 9);
+
+        let (max_flow, flow) = graph.max_flow(&'A', &'G').unwrap();
+        assert_eq!(max_flow, 5);
+        assert_eq!(flow[&'A'], HashMap::from([('B', 2), ('C', 0), ('D', 3)]));
+        assert_eq!(flow[&'D'], HashMap::from([('A', -3), ('C', -1), ('E', 0), ('F', 4)]));
+        assert_eq!(flow[&'E'], HashMap::from([('B', 0), ('C', -1), ('D', 0), ('G', 1)]));
+        assert_eq!(flow[&'G'], HashMap::from([('E', -1), ('F', -4)]));
+
+        let (_, (g1, g2)) = graph.min_cut(&'A', &'G').unwrap();
+        assert_eq!(g1, HashSet::from(['A', 'B', 'C', 'E']));
+        assert_eq!(g2, HashSet::from(['D', 'F', 'G']));
     }
 }
