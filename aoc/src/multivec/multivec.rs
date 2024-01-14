@@ -1,12 +1,7 @@
+use super::Scalar;
 use std::fmt::{Debug, Display};
 use std::iter::zip;
-use std::ops::{Add, Sub, Mul, Div};
-
-// Used to define the identity elements
-pub trait Scalar<T> {
-    const ONE: T;
-    const ZERO: T;
-}
+use std::ops::{Add, Div, Mul, Sub};
 
 #[derive(Debug, PartialEq, Hash, Default, Copy, Clone)]
 pub struct Multivec2D<T> {
@@ -70,7 +65,7 @@ where
 
 impl<T> From<T> for Multivec2D<T>
 where
-    T: Scalar<T>
+    T: Scalar<T>,
 {
     fn from(value: T) -> Self {
         Self {
@@ -81,12 +76,25 @@ where
 
 impl<T> From<[T; 2]> for Multivec2D<T>
 where
-    T: Scalar<T> + Copy
+    T: Scalar<T> + Copy,
 {
     fn from(arr: [T; 2]) -> Self {
         Self {
             data: [T::ZERO, arr[0], arr[1], T::ZERO],
         }
+    }
+}
+
+impl<T> Display for Multivec2D<T>
+where
+    T: Display,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{} + {} * e1 + {} * e2 + {} * e1 ∧ e2",
+            self.data[0], self.data[1], self.data[2], self.data[3]
+        )
     }
 }
 
@@ -203,68 +211,22 @@ where
     }
 }
 
-impl<T> Display for Multivec2D<T>
-where
-    T: Display,
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{} + {} * e1 + {} * e2 + {} * e1 ∧ e2",
-            self.data[0], self.data[1], self.data[2], self.data[3]
-        )
-    }
-}
-
-// Specific type implementations
-
-impl Scalar<f64> for f64 {
-    const ONE: f64 = 1.0;
-    const ZERO: f64 = 0.0;
-}
-
-impl Scalar<i64> for i64 {
-    const ONE: i64 = 1;
-    const ZERO: i64 = 0;
-}
-
-// These are unfortunately necessary for left addition and multiplication with a scalar
-
-impl Add<Multivec2D<f64>> for f64 {
-    type Output = Multivec2D<f64>;
-
-    fn add(self, rhs: Multivec2D<f64>) -> Self::Output {
-        rhs + self
-    }
-}
-
-impl Add<Multivec2D<i64>> for i64 {
-    type Output = Multivec2D<i64>;
-
-    fn add(self, rhs: Multivec2D<i64>) -> Self::Output {
-        rhs + self
-    }
-}
-
-impl Mul<Multivec2D<f64>> for f64 {
-    type Output = Multivec2D<f64>;
-
-    fn mul(self, rhs: Multivec2D<f64>) -> Self::Output {
-        rhs * self
-    }
-}
-
-impl Mul<Multivec2D<i64>> for i64 {
-    type Output = Multivec2D<i64>;
-
-    fn mul(self, rhs: Multivec2D<i64>) -> Self::Output {
-        rhs * self
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn grade() {
+        let a = Multivec2D::<i64> { data: [1, 2, 3, 4] };
+
+        assert_eq!(a.grade_project(0), Multivec2D { data: [1, 0, 0, 0] });
+
+        assert_eq!(a.grade_project(1), Multivec2D { data: [0, 2, 3, 0] });
+
+        assert_eq!(a.grade_project(2), Multivec2D { data: [0, 0, 0, 4] });
+
+        assert_eq!(a.grade_project(1).grade(), Some(1))
+    }
 
     #[test]
     fn operations() {
@@ -273,16 +235,14 @@ mod tests {
 
         assert_eq!(
             1 + 4 * (e1 + e1 * e2) / 2,
-            Multivec2D {
-                data: [1, 2, 0, 2]
-            }
+            Multivec2D { data: [1, 2, 0, 2] }
         );
     }
 
     #[test]
     fn complex_numbers() {
         let i = Multivec2D::<i64>::I;
-        
+
         assert_eq!(
             (1 + 2 * i) * i,
             Multivec2D {
@@ -296,38 +256,5 @@ mod tests {
                 data: [0, -2, 1, 0]
             }
         );
-    }
-
-    #[test]
-    fn grade() {
-        let a = Multivec2D::<i64> {
-            data: [1, 2, 3, 4]
-        };
-
-        assert_eq!(
-            a.grade_project(0),
-            Multivec2D {
-                data: [1, 0, 0, 0]
-            }
-        );
-
-        assert_eq!(
-            a.grade_project(1),
-            Multivec2D {
-                data: [0, 2, 3, 0]
-            }
-        );
-
-        assert_eq!(
-            a.grade_project(2),
-            Multivec2D {
-                data: [0, 0, 0, 4]
-            }
-        );
-
-        assert_eq!(
-            a.grade_project(1).grade(),
-            Some(1)
-        )
     }
 }
