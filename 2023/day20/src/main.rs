@@ -1,5 +1,6 @@
 use std::fs::read_to_string;
 use std::collections::{HashMap, VecDeque};
+use aoc::utils::lcm;
 
 fn main() {
     let mut modules = parse_file("./input.data");
@@ -79,19 +80,6 @@ fn main() {
 
     // dbg!(&periods);
     println!("Result part 2: {}", periods.iter().fold(1, |res, p| lcm(res, *p)));
-}
-
-fn gcd(mut a: u64, mut b: u64) -> u64 {
-    // Greatest Commen Divisor of `a` and `b`
-    while b != 0 {
-        (a, b) = (b, a%b);
-    }
-    return a
-}
-
-fn lcm(a: u64, b:u64) -> u64 {
-    // Least Common Multiple of `a` and `b`
-    return (a * b) / gcd(a, b)
 }
 
 #[derive(Debug, Default, Clone)]

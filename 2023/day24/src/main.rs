@@ -66,7 +66,7 @@ fn main() {
     let v = result.slice(s![3..]);
     dbg!(&p, &v);
 
-    // Unfortunately there are no methods for solving the equations over integers, and the result here
+    // Unfortunately there are no bulit-in methods for solving the equations over integers, and the result here
     //     is non-integer. The correct solution will be had by rounding. I simply checked both answers.
     // This is unsatisfactory, and should be fixed at some point. (Maybe use Z3 instead of linalg?)
     println!("Result part 2: {}", p.sum());

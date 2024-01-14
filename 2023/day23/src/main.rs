@@ -1,11 +1,12 @@
-use std::fs::read_to_string;
-use std::collections::{HashSet, HashMap};
+use std::{fs::read_to_string, collections::HashSet};
+use aoc::graph::grid_graph_2d;
 
-type DataStruct = Vec<Vec<char>>;
-type Position = (usize, usize);
+type Graph = aoc::graph::Graph::<(usize, usize), u64>;
 
 fn main() {
-    let map = parse_file("./input.data").unwrap();
+    let map: Vec<Vec<char>> = read_to_string("./input.data").unwrap().trim().split('\n').map(
+        |x| x.chars().collect()
+    ).collect();
     // dbg!(map.len(), map[0].len());
     // dbg!(&map);
 
@@ -26,7 +27,7 @@ fn main() {
     println!("Result part 2: {}", path_lengths.iter().max().unwrap());
 }
 
-fn solve(graph: &Graph, start: Position, end: Position, mut visited: HashSet<Position>) -> Vec<u32> {
+fn solve(graph: &Graph, start: (usize, usize), end: (usize, usize), mut visited: HashSet<(usize, usize)>) -> Vec<u64> {
     if start == end {
         return vec![0];
     }
@@ -45,37 +46,18 @@ fn solve(graph: &Graph, start: Position, end: Position, mut visited: HashSet<Pos
     return result;
 }
 
-type Graph = HashMap<Position, HashMap<Position, u32>>;
-
-fn compute_graph(map: &DataStruct, part2: bool) -> Graph {
-    let mut graph = HashMap::new();
+fn compute_graph(map: &Vec<Vec<char>>, part2: bool) -> Graph {
     let n = map.len(); // Maps are square
-    for i in 0..n {
-        for j in 0..n {
-            graph.insert((i, j), HashMap::new());
-        }
-    }
-    for i in 0..n-1 {
-        for j in 0..n-1 {
-            let node = graph.get_mut(&(i, j)).unwrap();
-            node.insert((i+1, j), 1);
-            node.insert((i, j+1), 1);
-
-            graph.get_mut(&(i+1, j)).unwrap().insert((i, j), 1);
-            graph.get_mut(&(i, j+1)).unwrap().insert((i, j), 1);
-        }
-    }
+    let mut graph = grid_graph_2d(n, n);
 
     for i in 0..n {
         for j in 0..n {
+            let node = (i, j);
             let c = map[i][j];
             if c == '#' {
-                let neighbours = graph.remove(&(i, j)).unwrap();
-                for neighbour in neighbours.keys() {
-                    graph.get_mut(neighbour).unwrap().remove(&(i, j));
-                }
+                graph.remove_node(node);
             } else if !part2 {
-                let bad_neighbours: Vec<Position> = match c {
+                let bad_neighbours: Vec<(usize, usize)> = match c {
                     '>' => vec![(i+1, j), (i-1, j), (i, j-1)],
                     '<' => vec![(i+1, j), (i-1, j), (i, j+1)],
                     '^' => vec![(i+1, j), (i, j+1), (i, j-1)],
@@ -83,38 +65,22 @@ fn compute_graph(map: &DataStruct, part2: bool) -> Graph {
                     _ => Vec::new(),
                 };
                 
-                let node = graph.get_mut(&(i, j)).unwrap();
                 for neighbour in bad_neighbours {
-                    node.remove(&neighbour);
+                    graph.remove_directed_edge(node, neighbour);
                 }
             }
         }
     }
 
-    let nodes: Vec<Position> = graph.keys().map(|x| *x).collect();
-    for node in &nodes {
-        if graph[node].len() == 2 {
-            let data = graph.remove(node).unwrap();
-            let neighbours: Vec<&Position> = data.keys().collect();
-            let edge_weight: u32 = data.values().sum();
-            
-            let n = graph.get_mut(neighbours[0]).unwrap();
-            if n.remove(node) != None {
-                n.insert(*neighbours[1], edge_weight);
-            }
-
-            let n = graph.get_mut(neighbours[1]).unwrap();
-            if n.remove(node) != None {
-                n.insert(*neighbours[0], edge_weight);
-            }
+    let nodes: Vec<(usize, usize)> = graph.nodes();
+    for node in nodes {
+        let neighbours: Vec<(usize, usize)> = graph.neighbours(&node);
+        if neighbours.len() == 2 {
+            let combined_weight = graph[&node].values().sum();
+            graph.remove_node(node);
+            graph.add_edge(neighbours[0], neighbours[1], combined_weight);
         }
     }
 
     return graph
-}
-
-fn parse_file(filepath: &str) -> Result<DataStruct, std::io::Error> {
-    Ok(read_to_string(filepath)?.trim().split('\n').map(
-        |x| x.chars().collect()
-    ).collect())
 }

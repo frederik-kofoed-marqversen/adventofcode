@@ -44,6 +44,11 @@ fn total_load(map: &Datastruct) -> usize {
     return result
 }
 
+fn tilt<'a>(map: &'a mut Datastruct, dir: &str) -> &'a mut Datastruct {
+    // should figure out a good way of handling direction other than copying
+    return map
+}
+
 fn tilt_north(map: &mut Datastruct) -> &mut Datastruct {
     let mut empty_spaces = vec![0_usize; map[0].len()];
     for i in 0..map.len() {

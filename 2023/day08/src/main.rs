@@ -1,3 +1,4 @@
+use aoc::utils::lcm;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
@@ -15,7 +16,7 @@ fn main() {
     // PART 2
     let starts = map.iter().filter(|x| x.0.chars().last().unwrap() == 'A');
     let lengths = starts.map(|node: &Node| length(node, &map, &directions, true));
-    println!("Result part 2: {}", lengths.fold(1, |lcm, length| least_common_multiple(lcm, length)));
+    println!("Result part 2: {}", lengths.fold(1, |acc, length| lcm(acc, length)));
 }
 
 fn length(start: &Node, map: &DataStruct, directions: &Vec<char>, part2: bool) -> u64 {
@@ -40,20 +41,8 @@ fn length(start: &Node, map: &DataStruct, directions: &Vec<char>, part2: bool) -
         }
         steps += 1;
     }
-    dbg!(&start.0, current_node);
+    // dbg!(&start.0, current_node);
     return steps
-}
-
-fn least_common_multiple(a: u64, b:u64) -> u64 {
-    let (mut am, mut bm) = (a, b);
-    while am != bm {
-        if am < bm {
-            am += a;
-        } else {
-            bm += b;
-        }
-    }
-    return am
 }
 
 fn parse_file(filepath: &str) -> Result<(Vec<char>, DataStruct), std::io::Error> {

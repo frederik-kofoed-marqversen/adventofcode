@@ -1,45 +1,58 @@
 use std::fs::read_to_string;
-use std::collections::{BinaryHeap, HashMap};
-use std::cmp::Ordering;
+use std::collections::HashMap;
 
-type DataStruct = Vec<Vec<usize>>;
+use aoc::graph::algorithms::{a_star, Traversible};
 
 fn main() {
-    let map = parse_file("./input.data").unwrap();
-    // dbg!(map.len(), map[0].len());
-    // dbg!(&map);
+    let data = parse_file("./input.data").unwrap();
+    let n = data.len(); // Maps are square.
+    let map = Map { data, n };
+    
+    let start_pos = (0, 0);
+    let end_pos = (n-1, n-1);
+    
+    let mut start = State {position: start_pos, direction: "None".to_string(), step_num: 0, part2: false};
+    let end_condition = |state: &State| state.position == end_pos;
+    let manhattan = |state: &State| (state.position.0.abs_diff(end_pos.0) + state.position.1.abs_diff(end_pos.1)) as u64;
 
     // PART 1
-    println!("Result part 1: {}", solve(&map, false).unwrap());
+    start.part2 = false;
+    println!("Result part 1: {}", a_star(&map, &start, &end_condition, Some(&manhattan)).unwrap().0);
 
     // PART 2
-    println!("Result part 2: {}", solve(&map, true).unwrap());
+    start.part2 = true;
+    println!("Result part 2: {}", a_star(&map, &start, &end_condition, Some(&manhattan)).unwrap().0);
 
 }
 
-fn solve(map: &DataStruct, part2: bool) -> Option<usize> {
-    // BinaryHeap is a max-heap wrt. the ordering of State.
-    // Here we have defined State such that it is a min-heap in the distance
-    let mut queue: BinaryHeap<State> = BinaryHeap::new();
-    let mut min_dist: HashMap<((usize, usize), &str, u8), usize> = HashMap::new();
-    
-    let start = State{distance: 0, position: (0, 0), direction: "None", step_num: 0};
-    queue.push(start);
-    min_dist.insert(((0, 0), "None", 0), 0);
-    
-    let n = map.len(); // map is square
-    while let Some(state) = queue.pop() {
-        let (distance, position, direction, step_num) = (state.distance, state.position, state.direction, state.step_num);
-        if position == (n-1, n-1) {
-            // `queue`` is a min-heap => the first time we encounter end `distance` will be the minimum
-            return Some(distance)
-        }
-        if &distance > min_dist.get(&(position, direction, step_num)).unwrap_or(&usize::MAX) {
-            // have found a shorter path since item was added to queue
-            continue;
-        }
-        
-        // add all possible next states to queue
+fn parse_file(filepath: &str) -> Result<Vec<Vec<u64>>, std::io::Error> {
+    Ok(read_to_string(filepath)?.trim().split('\n').map(
+        |x| x.chars().map(
+            |c| c.to_digit(10).unwrap() as u64
+        ).collect()
+    ).collect())
+}
+
+#[derive(PartialEq, Eq, Hash, Clone)]
+struct State {
+    position: (usize, usize),
+    direction: String,
+    step_num: u8,
+    part2: bool,
+}
+
+struct Map {
+    data: Vec<Vec<u64>>,
+    n: usize,
+}
+
+impl Traversible<State, u64> for Map {
+    fn connections(&self, state: &State) -> HashMap<State, u64> {
+        let mut result = HashMap::new();
+
+        let (position, direction) = (&state.position, &state.direction);
+        let step_num = state.step_num;
+        let part2 = state.part2;
         for new_direction in ["north", "south", "east", "west"] {
             let new_step_num = if new_direction == direction {step_num + 1} else {1};
             
@@ -53,7 +66,7 @@ fn solve(map: &DataStruct, part2: bool) -> Option<usize> {
                     (position.0 - 1, position.1)
                 },
                 "south" => {
-                    if position.0 == n-1  || direction == "north" {continue;}
+                    if position.0 == self.n-1  || direction == "north" {continue;}
                     (position.0 + 1, position.1)
                 },
                 "west" => {
@@ -61,55 +74,22 @@ fn solve(map: &DataStruct, part2: bool) -> Option<usize> {
                     (position.0, position.1 - 1)
                 },
                 "east" => {
-                    if position.1 == n-1  || direction == "west" {continue;}
+                    if position.1 == self.n-1  || direction == "west" {continue;}
                     (position.0, position.1 + 1)
                 },
-                _ => {return None}
+                _ => {return result}
             };
             
-            let new_distance = distance + map[new_position.0][new_position.1];
-            let new_state = State{
-                distance: new_distance, 
+            let new_state = State {
                 position: new_position, 
-                direction: new_direction, 
-                step_num: new_step_num
+                direction: new_direction.to_string(), 
+                step_num: new_step_num,
+                part2: part2,
             };
-            
-            if &new_distance < min_dist.get(&(new_position, new_direction, new_step_num)).unwrap_or(&usize::MAX) {
-                min_dist.insert((new_position, new_direction, new_step_num), new_distance);
-                queue.push(new_state);
-            }
+
+            result.insert(new_state, self.data[new_position.0][new_position.1]);
         }
-    }
 
-    return None
-}
-
-fn parse_file(filepath: &str) -> Result<DataStruct, std::io::Error> {
-    Ok(read_to_string(filepath)?.trim().split('\n').map(
-        |x| x.chars().map(
-            |c| c.to_digit(10).unwrap() as usize
-        ).collect()
-    ).collect())
-}
-
-#[derive(Clone, Eq, PartialEq)]
-struct State<'a> {
-    distance: usize,
-    position: (usize, usize),
-    direction: &'a str,
-    step_num: u8,
-}
-
-impl Ord for State<'_> {
-    fn cmp(&self, other: &Self) -> Ordering {
-        // Compare other way arround to get a min heap!
-        other.distance.cmp(&self.distance)
-    }
-}
-
-impl PartialOrd for State<'_> {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
+        return result
     }
 }
