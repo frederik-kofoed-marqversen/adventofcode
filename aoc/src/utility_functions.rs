@@ -94,10 +94,44 @@ pub fn crt_solve(n_vec: &Vec<i64>, a_vec: &Vec<i64>) -> i64 {
     return if a0 >= 0 { a0 } else { a0 + n0 };
 }
 
-// struct Complex;
+pub fn extrapolate(sequence: &Vec<i64>, n: usize) -> i64 {
+    // Returns the n'th number in the sequence by polynomial extrapolation
+    // using Newton's forward difference formula. It is assumed that the
+    // values are taken equidistantly => val[i] = f(ih) for some stepsize h.
+    // https://en.wikipedia.org/wiki/Newton_polynomial.
 
-// fn hermite_normal_form() {} // solving linear equation over integers: https://en.wikipedia.org/wiki/Hermite_normal_form
-//                             // maybe this is the alg to implement: https://sites.math.rutgers.edu/~sk1233/courses/ANT-F14/lec3.pdf
+    let mut coefficients = vec![sequence[0]];
+    let mut line = sequence.clone();
+    while !line.iter().all(|x| x == &line[0]) {
+        let diff: Vec<i64> = line[1..]
+            .iter()
+            .enumerate()
+            .map(|(i, x)| x - line[i])
+            .collect();
+        coefficients.push(diff[0]);
+        line = diff;
+    }
+
+    // Degree of the polynomial that fits sequence.
+    let degree = coefficients.len();
+    // The extrapolated value
+    let result = coefficients
+        .iter()
+        .zip(binoms(n, degree))
+        .map(|(a, b)| a * b as i64)
+        .sum();
+
+    return result;
+}
+
+fn binoms(n: usize, k: usize) -> Vec<usize> {
+    // All binomial coefficients (n \\ i) for 0 <= i <= k
+    let mut result = vec![1];
+    for i in 0..k {
+        result.push(result[i] * (n - i) / (i + 1));
+    }
+    return result;
+}
 
 #[cfg(test)]
 mod tests {
@@ -137,5 +171,19 @@ mod tests {
         let n_vec = vec![3, 4, 5];
         let a_vec = vec![0, 3, 4];
         assert_eq!(crt_solve(&n_vec, &a_vec), 39);
+    }
+
+    #[test]
+    fn test_extrapolate() {
+        let sequence = vec![3, 6, 18, 72];
+        let steps = vec![4, 5, 6, 7, 8];
+
+        let true_vals = vec![201, 438, 816, 1368, 2127];
+        let extrapolated = steps
+            .into_iter()
+            .map(|n| extrapolate(&sequence, n))
+            .collect::<Vec<_>>();
+
+        assert_eq!(true_vals, extrapolated);
     }
 }

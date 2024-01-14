@@ -1,7 +1,23 @@
-use super::{Num, Traversible};
+use super::{Num, Graph};
 use std::collections::{BinaryHeap, HashMap};
 use std::fmt::Debug;
 use std::hash::Hash;
+
+// Trait used to define graph-like behaviour to extend applicability of algs.
+pub trait Traversible<T, U> {
+    // Return a HashMap with key-value pairs: (neighbour, edge_weight).
+    fn connections(&self, node: &T) -> HashMap<T, U>;
+}
+
+impl<T, U> Traversible<T, U> for Graph<T, U>
+where
+    T: Clone + std::hash::Hash + Eq,
+    U: Default + Clone,
+{
+    fn connections(&self, node: &T) -> HashMap<T, U> {
+        self[node].clone()
+    }
+}
 
 #[derive(Debug, PartialEq)]
 struct State<T, U> {
@@ -38,21 +54,21 @@ where
     }
 }
 
-fn reconstruct_path<T, U>(data: &HashMap<&T, (U, Option<&T>)>, end: &T) -> Vec<T>
+fn reconstruct_path<T, U>(data: &HashMap<T, (U, Option<T>)>, end: T) -> Vec<T>
 where
     T: Eq + Hash + Clone,
 {
     let mut path = Vec::from([end]);
-    while let Some(predecessor) = data[path.last().unwrap()].1 {
-        path.push(predecessor);
+    while let Some(predecessor) = &data[path.last().unwrap()].1 {
+        path.push(predecessor.clone());
     }
-    return path.into_iter().cloned().rev().collect();
+    return path.into_iter().rev().collect();
 }
 
 pub fn a_star<T, U>(
     graph: &dyn Traversible<T, U>,
     start: &T,
-    end: &T,
+    end_condition: &dyn Fn(&T) -> bool,
     heuristic: Option<&dyn Fn(&T) -> U>,
 ) -> Option<(U, Vec<T>)>
 where
@@ -64,33 +80,33 @@ where
     let heuristic = heuristic.unwrap_or(&|_| U::ZERO);
 
     // data holds tuples (shortest_distance, Some(predecessor)).
-    let mut data = HashMap::<&T, (U, Option<&T>)>::from([(start, (U::ZERO, None))]);
+    let mut data = HashMap::<T, (U, Option<T>)>::from([(start.clone(), (U::ZERO, None))]);
     let mut queue = BinaryHeap::from([State {
-        node: start,
+        node: start.clone(),
         score: U::ZERO,
     }]);
     while let Some(state) = queue.pop() {
         let current = state.node;
 
-        if current == end {
-            let end_distance = data[&end].0;
-            let end_path: Vec<T> = reconstruct_path(&data, end);
+        if end_condition(&current) {
+            let end_distance = data[&current].0;
+            let end_path: Vec<T> = reconstruct_path(&data, current.clone());
             return Some((end_distance, end_path));
         }
 
-        for (next, &weight) in graph.connections(current) {
+        for (next, weight) in graph.connections(&current) {
             // Distance to next through current.
             let d = data[&current].0 + weight;
             // If entry does not exist, fill with default value.
-            let entry = data.entry(next).or_insert((U::INF, None));
+            let entry = data.entry(next.clone()).or_insert((U::INF, None));
 
             if d < entry.0 {
                 // This path is shorter than previous best.
                 entry.0 = d;
-                entry.1 = Some(current);
+                entry.1 = Some(current.clone());
                 queue.push(State {
-                    node: next,
-                    score: d + heuristic(next),
+                    node: next.clone(),
+                    score: d + heuristic(&next),
                 });
             }
         }

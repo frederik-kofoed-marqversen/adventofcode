@@ -6,22 +6,6 @@ pub use pathfinding::*;
 
 use super::Graph;
 
-// Trait used to define graph-like behaviour to extend applicability of algs.
-pub trait Traversible<T, U> {
-    // Return a HashMap with key-value pairs: (neighbour, edge_weight).
-    fn connections(&self, node: &T) -> &std::collections::HashMap<T, U>;
-}
-
-impl<T, U> Traversible<T, U> for Graph<T, U>
-where
-    T: Clone + std::hash::Hash + Eq,
-    U: Default + Clone,
-{
-    fn connections(&self, node: &T) -> &std::collections::HashMap<T, U> {
-        &self[node]
-    }
-}
-
 // Internal trait to define the default values of numbers
 pub trait Num<T> {
     const ZERO: T;
@@ -107,8 +91,9 @@ mod tests {
         // Manhattan distance to end
         let heuristic =
             |pos: &(usize, usize)| (pos.0.abs_diff(end.0) + pos.1.abs_diff(end.1)) as u64;
-        let sol_dijkstra = a_star(&graph, &start, &end, None);
-        let sol_a_star = a_star(&graph, &start, &end, Some(&heuristic));
+        let end_condition = |pos: &(usize, usize)| pos == &end;
+        let sol_dijkstra = a_star(&graph, &start, &end_condition, None);
+        let sol_a_star = a_star(&graph, &start, &end_condition, Some(&heuristic));
 
         assert_eq!(sol_dijkstra, sol_a_star);
         assert_eq!(
@@ -136,13 +121,14 @@ mod tests {
         let mut graph: Graph<char, f64> = Graph::new();
         graph.add_node('A');
         graph.add_node('B');
+        let end_condition = |node: &char| node == &'B';
 
         let res = min_cut(&graph, &'A', &'B');
         assert_eq!(
             res,
             Some((0.0, (HashSet::from(['A']), HashSet::from(['B']))))
         );
-        let res = a_star(&graph, &'A', &'B', None);
+        let res = a_star(&graph, &'A', &end_condition, None);
         assert_eq!(res, None);
     }
 }
