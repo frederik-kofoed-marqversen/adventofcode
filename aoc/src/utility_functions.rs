@@ -71,27 +71,34 @@ pub fn bezout(a: i64, b: i64) -> (i64, i64, i64) {
     return (r.0, s.0, t.0);
 }
 
-pub fn crt_solve(n_vec: &Vec<i64>, a_vec: &Vec<i64>) -> i64 {
-    // The Chinese Remainder Theorem (CRT)
-    // Solves the relations x = a_i mod n_i for all i
-    // `n` and `a` must have same lengths
-    // n_i's must be coprime
+pub fn crt_solve(n_vec: &Vec<i64>, a_vec: &Vec<i64>) -> Option<(i64, i64)> {
+    // Chinese Remainder Theorem (CRT).
+    // Returns tuple (a, n) such that all x (including x=a) for which x % n = a solves the simultaneous
+    // congruence relations: x = a_i mod n_i.
 
     let eqs: Vec<(i64, i64)> = std::iter::zip(n_vec, a_vec)
         .map(|(n, a)| (*n as i64, *a as i64))
         .collect();
-    // eqs.sort_by_key(|(n, _)| Reverse(*n)); // do not know if sorting makes a difference
 
     let (mut n0, mut a0) = (1, 0);
     for (n1, a1) in eqs {
-        let (_, m0, m1) = bezout(n0, n1);
-        let x = a1 * m0 * n0 + a0 * m1 * n1;
-
+        let (gcd, m0, m1) = bezout(n0, n1);
+        let mut x = a1 * m0 * n0 + a0 * m1 * n1;
+        
+        if gcd != 1 { // Non-coprime moduli
+            if (a0 - a1) % gcd != 0 { // No solution exists
+                return None
+            } else {
+                x /= gcd;
+                n0 /= gcd;
+            }
+        }
+        
         n0 = n0 * n1;
         a0 = x % n0;
     }
 
-    return if a0 >= 0 { a0 } else { a0 + n0 };
+    return if a0 >= 0 { Some((a0, n0)) } else { Some((a0 + n0, n0)) };
 }
 
 pub fn extrapolate(sequence: &Vec<i64>, n: usize) -> i64 {
@@ -170,7 +177,21 @@ mod tests {
     fn test_crt() {
         let n_vec = vec![3, 4, 5];
         let a_vec = vec![0, 3, 4];
-        assert_eq!(crt_solve(&n_vec, &a_vec), 39);
+        assert_eq!(crt_solve(&n_vec, &a_vec), Some((39, 60)));
+    }
+
+    #[test]
+    fn test_crt_non_coprime() {
+        let n_vec = vec![2, 3, 4, 5, 6];
+        
+        let a_vec = vec![1, 1, 1, 1, 1];
+        assert_eq!(crt_solve(&n_vec, &a_vec), Some((1, 60)));
+        
+        let a_vec = vec![1, 1, 3, 0, 1];
+        assert_eq!(crt_solve(&n_vec, &a_vec), Some((55, 60)));
+
+        let a_vec = vec![1, 1, 0, 1, 1];
+        assert_eq!(crt_solve(&n_vec, &a_vec), None);
     }
 
     #[test]
