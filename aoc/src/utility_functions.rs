@@ -39,7 +39,7 @@ pub fn floyd<T: Clone + Eq>(x0: T, map: &dyn Fn(&T) -> T) -> (usize, usize) {
 
 pub fn gcd(mut a: u64, mut b: u64) -> u64 {
     // Euclidean algorithm for determining the
-    // Greatest Commen Divisor (GCD) of `a` and `b`
+    // Greatest Commen Divisor (GCD)
     while b != 0 {
         (a, b) = (b, a % b);
     }
@@ -47,13 +47,13 @@ pub fn gcd(mut a: u64, mut b: u64) -> u64 {
 }
 
 pub fn lcm(a: u64, b: u64) -> u64 {
-    // Least Common Multiple (LCM) of `a` and `b`
+    // Least Common Multiple (LCM)
     return (a / gcd(a, b)) * b;
 }
 
 pub fn bezout(a: i64, b: i64) -> (i64, i64, i64) {
-    // Extended Euclidean algorithm for determining
-    // Returns (gcd, s, t) such that Bezout's identity holds
+    // Extended Euclidean algorithm.
+    // Returns (gcd, s, t) such that Bezout's identity holds: 
     // gcd(a, b) = a*s + b*t
 
     let mut r = (a, b);
@@ -73,8 +73,8 @@ pub fn bezout(a: i64, b: i64) -> (i64, i64, i64) {
 
 pub fn crt_solve(n_vec: &Vec<i64>, a_vec: &Vec<i64>) -> Option<(i64, i64)> {
     // Chinese Remainder Theorem (CRT).
-    // Returns tuple (a, n) such that all x (including x=a) for which x % n = a solves the simultaneous
-    // congruence relations: x = a_i mod n_i.
+    // Returns tuple (a, n) such that all x (including x=a) for which x % n = a solves 
+    // the simultaneous congruence relations: x = a_i mod n_i.
 
     let eqs: Vec<(i64, i64)> = std::iter::zip(n_vec, a_vec)
         .map(|(n, a)| (*n as i64, *a as i64))
