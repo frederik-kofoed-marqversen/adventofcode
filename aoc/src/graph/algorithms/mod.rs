@@ -116,7 +116,7 @@ mod tests {
     }
 
     #[test]
-    fn floats() {
+    fn min_cut_floats() {
         // Example taken from https://en.wikipedia.org/wiki/Edmonds%E2%80%93Karp_algorithm
         let mut graph: Graph<char, f64> = Graph::new();
         graph.add_node('A');
