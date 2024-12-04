@@ -3,7 +3,7 @@ use std::fmt::{Debug, Display};
 use std::iter::zip;
 use std::ops::{Add, Div, Mul, Sub, Neg};
 
-#[derive(Debug, PartialEq, Hash, Default, Copy, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Default, Copy, Clone)]
 pub struct Multivec2D<T> {
     data: [T; 4],
 }
