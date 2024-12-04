@@ -1,7 +1,7 @@
 use super::Scalar;
 use std::fmt::{Debug, Display};
 use std::iter::zip;
-use std::ops::{Add, Div, Mul, Sub};
+use std::ops::{Add, Div, Mul, Sub, Neg};
 
 #[derive(Debug, PartialEq, Hash, Default, Copy, Clone)]
 pub struct Multivec2D<T> {
@@ -10,7 +10,7 @@ pub struct Multivec2D<T> {
 
 impl<T> Multivec2D<T>
 where
-    T: Scalar<T> + PartialEq + Debug,
+    T: Scalar<T> + PartialEq,
 {
     pub const E1: Self = Self {
         data: [T::ZERO, T::ONE, T::ZERO, T::ZERO],
@@ -117,7 +117,7 @@ where
 
 impl<T> Add<T> for Multivec2D<T>
 where
-    T: Scalar<T> + PartialEq + Debug + Add<Output = T>,
+    T: Scalar<T> + Debug + Add<Output = T>,
 {
     type Output = Self;
 
@@ -208,6 +208,17 @@ where
                 .try_into()
                 .unwrap(),
         }
+    }
+}
+
+impl<T> Neg for Multivec2D<T>
+where
+    T: Scalar<T> + Neg<Output = T> + Mul<Output = T> + Debug + Copy,
+{
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        self * (-T::ONE)
     }
 }
 
