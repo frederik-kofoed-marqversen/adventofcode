@@ -1,8 +1,8 @@
-use aoc::multivec::Multivec2D as Complex;
+use aoc::complex::Complex;
 use std::collections::HashMap;
 use std::fs::read_to_string;
 
-const I: Complex<i64> = Complex::<i64>::I;
+const I: Complex<i32> = Complex::<i32>{real: 0, imag: 1};
 
 fn main() {
     // Parsing
@@ -11,7 +11,7 @@ fn main() {
     let mut map = HashMap::new();
     for (i, line) in input.lines().enumerate() {
         for (j, letter) in line.chars().enumerate() {
-            map.insert(i as i64 + I * j as i64, letter);
+            map.insert(i as i32 + I * j as i32, letter);
         }
     }
 

@@ -1,9 +1,8 @@
-use aoc::multivec::Multivec2D;
+use aoc::complex::Complex;
 use std::collections::HashSet;
 use std::fs::read_to_string;
 
-type Complex = Multivec2D<i64>;
-const I: Complex = Complex::I;
+const I: Complex<i32> = Complex::<i32> { real: 0, imag: 1 };
 
 fn main() {
     // Parsing
@@ -11,12 +10,12 @@ fn main() {
     let map: Vec<Vec<char>> = input.lines().map(|line| line.chars().collect()).collect();
 
     // Record obstacle and start positions
-    let bounds = [map.len() as i64, 0, 0, map[0].len() as i64];
+    let bounds = [map.len() as i32, map[0].len() as i32];
     let mut obstacles = HashSet::new();
-    let mut start = 0 * I;
+    let mut start = I * 0;
     for (i, row) in map.iter().enumerate() {
         for (j, c) in row.iter().enumerate() {
-            let pos = i as i64 + I * j as i64;
+            let pos = i as i32 + I * j as i32;
             match c {
                 '^' => start = pos,
                 '#' => {
@@ -28,8 +27,8 @@ fn main() {
     }
 
     // Function that simulates the guards path
-    let simulate = |obstruction: Option<Complex>| -> (HashSet<Complex>, bool) {
-        let mut dir = Complex::from(-1);
+    let simulate = |obstruction: Option<Complex<i32>>| -> (HashSet<Complex<i32>>, bool) {
+        let mut dir = Complex::<i32> { real: -1, imag: 0 };
         let mut guard = start;
         let mut obsts = obstacles.clone();
         if obstruction.is_some() {
@@ -38,9 +37,10 @@ fn main() {
 
         let mut visited = HashSet::new();
         let mut is_loop = false;
-        while [0, 3]
+        while [guard.real, guard.imag]
             .iter()
-            .all(|&i| guard.data[i] >= 0 && guard.data[i] < bounds[i])
+            .zip(bounds)
+            .all(|(&g, b)| g >= 0 && g < b)
         {
             let state = (guard, dir);
             // loop detection
@@ -58,7 +58,8 @@ fn main() {
             guard = guard + dir;
         }
 
-        let distinct_positions = HashSet::<Complex>::from_iter(visited.iter().map(|(pos, _)| *pos));
+        let distinct_positions =
+            HashSet::<Complex<i32>>::from_iter(visited.iter().map(|(pos, _)| *pos));
         return (distinct_positions, is_loop);
     };
 
@@ -68,6 +69,9 @@ fn main() {
 
     // PART 2
     guard_path.remove(&start);
-    let loop_count = guard_path.into_iter().filter(|&pos| simulate(Some(pos)).1).count();
+    let loop_count = guard_path
+        .into_iter()
+        .filter(|&pos| simulate(Some(pos)).1)
+        .count();
     println!("Result part 2: {loop_count}");
 }
