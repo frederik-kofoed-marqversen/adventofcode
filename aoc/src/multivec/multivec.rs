@@ -5,7 +5,7 @@ use std::ops::{Add, Div, Mul, Sub, Neg};
 
 #[derive(Debug, PartialEq, Eq, Hash, Default, Copy, Clone)]
 pub struct Multivec2D<T> {
-    data: [T; 4],
+    pub data: [T; 4],
 }
 
 impl<T> Multivec2D<T>
