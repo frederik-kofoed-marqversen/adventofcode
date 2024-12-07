@@ -9,7 +9,7 @@ fn main() {
     let input = read_to_string("./input.data").unwrap();
     let map: Vec<Vec<char>> = input.lines().map(|line| line.chars().collect()).collect();
 
-    // Record obstacle and start positions
+    // Record start and obstruction positions
     let bounds = [map.len() as i32, map[0].len() as i32];
     let mut obstructions = HashSet::new();
     let mut start = I * 0;
@@ -26,7 +26,8 @@ fn main() {
         }
     }
 
-    // Function to simulate the guards path
+    // Function to simulate the guards path.
+    // Returns the set of guard states and whether or not the path falls into a loop.
     let simulate =
         |obstruction: Option<Complex<i32>>| -> (HashSet<(Complex<i32>, Complex<i32>)>, bool) {
             // Add obstruction
@@ -36,12 +37,11 @@ fn main() {
             }
 
             // Guard starting state
-            let mut dir = Complex::<i32> { real: -1, imag: 0 };
             let mut guard = start;
+            let mut dir = Complex::<i32> { real: -1, imag: 0 };
 
             // Simulate
             let mut guard_states = HashSet::new();
-            let mut is_loop = false;
             while [guard.real, guard.imag]
                 .iter()
                 .zip(bounds)
@@ -50,8 +50,7 @@ fn main() {
                 let state = (guard, dir);
                 // loop detection
                 if guard_states.contains(&state) {
-                    is_loop = true;
-                    break;
+                    return (guard_states, true);
                 }
                 // record state
                 guard_states.insert(state);
@@ -62,7 +61,7 @@ fn main() {
                 guard = guard + dir;
             }
 
-            return (guard_states, is_loop);
+            return (guard_states, false);
         };
 
     // PART 1
