@@ -39,7 +39,7 @@ fn check_equation(goal: u64, current: u64, remaining: &[u64], part2: bool) -> bo
         return goal == current;
     }
 
-    return check_equation(goal, current * remaining[0], &remaining[1..], part2)
-        || check_equation(goal, current + remaining[0], &remaining[1..], part2)
+    return check_equation(goal, current + remaining[0], &remaining[1..], part2)
+        || check_equation(goal, current * remaining[0], &remaining[1..], part2)
         || (part2 && check_equation(goal, concat(current, remaining[0]), &remaining[1..], part2));
 }
