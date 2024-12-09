@@ -4,7 +4,7 @@ type DiskMap = Vec<(u32, u32, u32)>; // (filename, start, stop)
 
 fn main() {
     // Parsing
-    let input = read_to_string("./input.data").unwrap().replace(':', "");
+    let input = read_to_string("./input.data").unwrap();
 
     let mut disk_map: DiskMap = DiskMap::new();
     let mut index = 0;

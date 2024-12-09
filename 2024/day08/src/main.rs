@@ -6,7 +6,7 @@ const I: Complex<i32> = Complex { real: 0, imag: 1 };
 
 fn main() {
     // Parsing
-    let input = read_to_string("./input.data").unwrap().replace(':', "");
+    let input = read_to_string("./input.data").unwrap();
 
     let map: Vec<Vec<char>> = input.lines().map(|line| line.chars().collect()).collect();
     let bounds = [map[0].len() as i32, map.len() as i32];
