@@ -3,9 +3,40 @@ use std::fs::read_to_string;
 type DiskMap = Vec<(u32, u32, u32)>; // (filename, start, stop)
 
 fn main() {
-    // Parsing
+    // PARSING
     let input = read_to_string("./input.data").unwrap();
 
+    // PART 1
+    // Compute the data on each disk location from input
+    let mut disk = Vec::new();
+    for (i, digit) in input.chars().enumerate() {
+        let length = digit.to_digit(10).unwrap() as usize;
+        if i % 2 == 0 {
+            disk.append(&mut vec![Some(i / 2); length]);
+        } else {
+            disk.append(&mut vec![None; length]);
+        }
+    }
+
+    // Compute compacted disk
+    let mut index = 0;
+    while index < disk.len() {
+        if disk[index].is_some() {
+            index += 1;
+        } else if let Some(Some(file)) = disk.pop() {
+            disk[index] = Some(file);
+        }
+    }
+    
+    let checksum: usize = disk
+        .iter()
+        .enumerate()
+        .map(|(i, file)| i * file.unwrap())
+        .sum();
+    println!("Result part 1: {checksum}");
+
+    // PART 2
+    // Parse input into a map of non-empty disk space: (filename, start, stop)
     let mut disk_map: DiskMap = DiskMap::new();
     let mut index = 0;
     for (i, digit) in input.chars().enumerate() {
@@ -17,43 +48,8 @@ fn main() {
     }
     // dbg!(disk_layout(&disk_map));
 
-    // PART 1
-    let mut compacted_disk_map = disk_map.clone();
-
-    loop {
-        // Find free disk space between files
-        if let Some(index) = compacted_disk_map
-            .iter()
-            .zip(&compacted_disk_map[1..])
-            .position(|(a, b)| b.1 - a.2 > 0)
-        {
-            // Found free disk space
-            let space_start = compacted_disk_map[index].2;
-            let space_stop = compacted_disk_map[index + 1].1;
-            let free_disk_space = space_stop - space_start;
-            
-            // Fetch rightmost file
-            let (file, start, stop) = compacted_disk_map.pop().unwrap();
-            let file_length = stop - start;
-            
-            // Move data from file to free disk space
-            let moved_data = u32::min(free_disk_space, file_length);
-            compacted_disk_map.insert(index + 1, (file, space_start, space_start + moved_data));
-            if moved_data < file_length {
-                // No space for the entire file. Reinsert remaining data from file.
-                compacted_disk_map.push((file, start, start + file_length - moved_data))
-            }
-        } else {
-            // No more roome for moving files
-            break;
-        }
-    }
-    // dbg!(disk_layout(&compacted_disk_map));
-    println!("Result part 1: {}", checksum(&compacted_disk_map));
-
-    // PART 2
+    // Compute compacted disk
     let mut compacted_disk_map: DiskMap = disk_map.clone();
-
     for file in (0..disk_map.len() as u32).rev() {
         // Find file
         let file_index = compacted_disk_map
@@ -78,10 +74,10 @@ fn main() {
     }
 
     // dbg!(disk_layout(&compacted_disk_map));
-    println!("Result part 2: {}", checksum(&compacted_disk_map));
+    println!("Result part 2: {}", compute_checksum(&compacted_disk_map));
 }
 
-fn checksum(disk_map: &DiskMap) -> u64 {
+fn compute_checksum(disk_map: &DiskMap) -> u64 {
     disk_map
         .iter()
         .map(|&(file, start, stop)| (file * (start..stop).sum::<u32>()) as u64)
