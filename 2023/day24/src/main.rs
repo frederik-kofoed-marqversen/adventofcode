@@ -64,7 +64,7 @@ fn main() {
     let result = a.solve_into(b).unwrap();
     let p = result.slice(s![..3]);
     let v = result.slice(s![3..]);
-    dbg!(&p, &v);
+    // dbg!(&p, &v);
 
     // Unfortunately there are no bulit-in methods for solving the equations over integers, and the result here
     //     is non-integer. The correct solution will be had by rounding. I simply checked both answers.
