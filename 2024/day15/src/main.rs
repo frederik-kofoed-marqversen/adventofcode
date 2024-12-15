@@ -8,10 +8,10 @@ fn main() {
     // PARSING
     let input = read_to_string("./input.data").unwrap();
     let input = input.split_once("\n\n").unwrap();
-    
+
     let map_str = input.0;
     let movements = input.1.replace('\n', "");
-    
+
     // PART 1
     println!("Result part 1: {}", solve(map_str, &movements, false));
 
@@ -21,7 +21,10 @@ fn main() {
         .replace('@', "@.")
         .replace('#', "##")
         .replace('O', "[]");
-    println!("Result part 2: {}", solve(&modified_map_str, &movements, false));
+    println!(
+        "Result part 2: {}",
+        solve(&modified_map_str, &movements, false)
+    );
 }
 
 fn solve(map_str: &str, movements: &str, print_map: bool) -> i32 {
@@ -57,13 +60,13 @@ fn solve(map_str: &str, movements: &str, print_map: bool) -> i32 {
         println!("{}", map_to_string(&map, &robot, &bounds));
     }
 
-    // Find boxes and convert position to GPS (Goods Positioning System) coord
+    // Find boxes and convert positions to GPS (Goods Positioning System) coord
     let box_coords: Vec<i32> = map
         .iter()
         .filter(|(_, c)| c == &&'O' || c == &&'[')
         .map(|(pos, _)| pos.real + 100 * pos.imag)
         .collect();
-    return box_coords.iter().sum::<i32>()
+    return box_coords.iter().sum::<i32>();
 }
 
 fn simulate(
@@ -77,10 +80,11 @@ fn simulate(
             .find(|(c, _)| c == movement)
             .map(|(_, num)| *num)
             .unwrap();
-
+        
         let mut are_pushed = Vec::new();
         let mut queue = VecDeque::new();
-
+        
+        // Check if the robot will run into anything
         match map.get(&(robot + dir)) {
             None => {}
             Some('#') => {
@@ -100,6 +104,7 @@ fn simulate(
             _ => panic!("Unexpected character!"),
         }
 
+        // Check if boxes on the queue can be pushed. Early escape if not possible.
         while let Some(pos) = queue.pop_front() {
             are_pushed.push(pos);
 
@@ -120,10 +125,13 @@ fn simulate(
             }
         }
 
+        // Move the robot
         robot = robot + dir;
-
+        // Move the affected boxes. To avoid overwriting: Move boxes in order of 
+        // furthest to closest in direction of movement.
         are_pushed.sort_by_key(|pos| pos.real * dir.real + pos.imag * dir.imag);
         are_pushed.dedup();
+        // Duplicates might be present even after .dedup(). Could use HashMap instead I check for Some() below.
         for pos in are_pushed.iter().rev() {
             if let Some(c) = map.remove(pos) {
                 map.insert(*pos + dir, c);
