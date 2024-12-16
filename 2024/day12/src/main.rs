@@ -19,7 +19,7 @@ fn main() {
         .flatten()
         .collect();
 
-    let mut regions: Vec<(char, HashSet<Complex<i32>>, Vec<Complex<i32>>)> = Vec::new();
+    let mut regions = Vec::new();
     let mut unexplored_coords = HashSet::<Complex<i32>>::from_iter(map.keys().cloned());
     // HashSet does not implement .pop(), this is a workarround.
     while let Some(&coord) = unexplored_coords.iter().next().to_owned() {
@@ -30,7 +30,8 @@ fn main() {
         while let Some(coord) = queue.pop() {
             unexplored_coords.remove(&coord);
 
-            for neighbour in [coord + 1, coord + I, coord - 1, coord - I] {
+            for step in [1 + I * 0, I, -1 + I * 0, -I] {
+                let neighbour = coord + step;
                 // Check if neighbour is part of the same region
                 if map
                     .get(&neighbour)
@@ -41,21 +42,14 @@ fn main() {
                         queue.push(neighbour);
                     }
                 } else {
-                    boundary.push(neighbour);
+                    // Record the boundary together with the boundary normal.
+                    boundary.push((neighbour, step));
                 }
             }
         }
 
         regions.push((garden_type, region, boundary));
     }
-    /* for region in &regions {
-        dbg!((
-            region.0,                              // garden type
-            region.1.len(),                        // area
-            region.2.len(),                        // perimeter
-            number_of_edges(&region.1, &region.2)  // num of edges
-        ));
-    } */
 
     // PART 1
     let part1 = regions
@@ -66,27 +60,39 @@ fn main() {
     println!("Result part 1: {part1}");
 
     // PART 2
+    // The function: number_of_edges utilises an idea from my collegue much nicer than
+    // my own initial solution: number_of_edges_obsolete 
     let part2 = regions
         .iter()
-        .map(|(_, r, b)| r.len() * number_of_edges(r, b))
+        .map(|(_, r, b)| r.len() * number_of_edges(b))
         .sum::<usize>();
 
     println!("Result part 2: {part2}");
 }
 
-fn number_of_edges(region: &HashSet<Complex<i32>>, boundary: &Vec<Complex<i32>>) -> usize {
+fn number_of_edges(boundary: &Vec<(Complex<i32>, Complex<i32>)>) -> usize {
+    // Count the number of boundary points which has no neighbour to the right
+    boundary
+        .iter()
+        .filter(|&&(pos, normal)| !boundary.contains(&(pos + normal * I, normal)))
+        .count()
+}
+
+#[allow(dead_code)]
+fn number_of_edges_obsolete(
+    region: &HashSet<Complex<i32>>,
+    boundary: &Vec<(Complex<i32>, Complex<i32>)>,
+) -> usize {
+    // Count number of edges by walking around the boundary and counting the number of turns.
     let mut result = 0;
-    let mut nonvisited_boundary: HashSet<Complex<i32>> =
+    let mut nonvisited_boundary: HashSet<(Complex<i32>, Complex<i32>)> =
         HashSet::from_iter(boundary.iter().cloned());
 
     // Loop until all of the boundary has been considered
-    while let Some(&out) = nonvisited_boundary.iter().next().to_owned() {
-        // Find coordinate inside region neighbouring this boundary
-        let start = [out + 1, out + I, out - 1, out - I]
-            .into_iter()
-            .find(|coord| region.contains(coord))
-            .unwrap(); // Always exists by construction.
-        let start_dir = (out - start) * (-I); // Direction such that boundary is to the right
+    while let Some(&(pos, normal)) = nonvisited_boundary.iter().next().to_owned() {
+        // Compute coordinate inside region neighbouring this boundary
+        let start = pos - normal;
+        let start_dir = normal * (-I); // Direction such that boundary is to the right
 
         // Walk while keeping boundary on the right
         let mut pos = start;
@@ -108,7 +114,7 @@ fn number_of_edges(region: &HashSet<Complex<i32>>, boundary: &Vec<Complex<i32>>)
                 result += 1;
             }
             // Remove the currently adjacent boundary (always to the right)
-            nonvisited_boundary.remove(&(pos + dir * I));
+            nonvisited_boundary.remove(&(pos + dir * I, dir * I));
         }
     }
     return result;
