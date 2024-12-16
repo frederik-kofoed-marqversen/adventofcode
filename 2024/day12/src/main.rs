@@ -8,14 +8,16 @@ fn main() {
     // PARSING
     let input = read_to_string("./input.data").unwrap();
 
-    let mut map: HashMap<Complex<i32>, char> = HashMap::new();
-    for (i, line) in input.lines().enumerate() {
-        for (j, c) in line.chars().enumerate() {
-            // Coords are (x, y) = (col, row) where row is measured positive going dow!
-            let coord = j as i32 + I * i as i32;
-            map.insert(coord, c);
-        }
-    }
+    let map: HashMap<Complex<i32>, char> = input
+        .lines()
+        .enumerate()
+        .map(|(y, line)| {
+            line.chars()
+                .enumerate()
+                .map(move |(x, c)| (x as i32 + I * y as i32, c))
+        })
+        .flatten()
+        .collect();
 
     let mut regions: Vec<(char, HashSet<Complex<i32>>, Vec<Complex<i32>>)> = Vec::new();
     let mut unexplored_coords = HashSet::<Complex<i32>>::from_iter(map.keys().cloned());

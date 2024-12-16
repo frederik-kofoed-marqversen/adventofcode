@@ -1,5 +1,5 @@
 use aoc::complex::Complex;
-use std::collections::{HashMap, VecDeque};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::fs::read_to_string;
 
 const I: Complex<i32> = Complex { real: 0, imag: 1 };
@@ -34,33 +34,31 @@ fn solve(map_str: &str, movements: &str, print_map: bool) -> i32 {
         map_str.split_once('\n').unwrap().0.chars().count(),
         map_str.split('\n').count(),
     ];
-    let mut robot = 0 * I;
-    let mut map = HashMap::new();
-    for (y, line) in map_str.lines().enumerate() {
-        for (x, c) in line.chars().enumerate() {
-            let pos = x as i32 + I * y as i32;
-            match c {
-                '@' => robot = pos,
-                '.' => continue,
-                _ => {
-                    map.insert(pos, c);
-                }
-            }
-        }
-    }
+
+    let map: HashMap<Complex<i32>, char> = map_str
+        .lines()
+        .enumerate()
+        .map(|(y, line)| {
+            line.chars()
+                .enumerate()
+                .map(move |(x, c)| (x as i32 + I * y as i32, c))
+        })
+        .flatten()
+        .filter(|(_, c)| c != &'.')
+        .collect();
 
     if print_map {
-        println!("Initial map");
-        println!("{}", map_to_string(&map, &robot, &bounds));
+        println!("Initial map:");
+        println!("{}", map_to_string(&map, &bounds));
     }
     // Simulate movements
-    (map, robot) = simulate(map, robot, &movements);
+    let map = simulate(map, &movements);
     if print_map {
-        println!("Final map");
-        println!("{}", map_to_string(&map, &robot, &bounds));
+        println!("Final map:");
+        println!("{}", map_to_string(&map, &bounds));
     }
 
-    // Find boxes and convert positions to GPS (Goods Positioning System) coord
+    // Find boxes and convert their positions to GPS (Goods Positioning System) coord
     let box_coords: Vec<i32> = map
         .iter()
         .filter(|(_, c)| c == &&'O' || c == &&'[')
@@ -71,42 +69,27 @@ fn solve(map_str: &str, movements: &str, print_map: bool) -> i32 {
 
 fn simulate(
     mut map: HashMap<Complex<i32>, char>,
-    mut robot: Complex<i32>,
     movements: &Vec<char>,
-) -> (HashMap<Complex<i32>, char>, Complex<i32>) {
+) -> HashMap<Complex<i32>, char> {
+    // Keep the position of the robot global for efficiency.
+    let mut robot = map.iter().find(|(_, c)| c == &&'@').unwrap().0.clone();
+
     'outer: for movement in movements {
         let dir = [('^', -I), ('>', 1 + 0 * I), ('v', I), ('<', -1 + 0 * I)]
             .iter()
             .find(|(c, _)| c == movement)
             .map(|(_, num)| *num)
             .unwrap();
-        
-        let mut are_pushed = Vec::new();
-        let mut queue = VecDeque::new();
-        
-        // Check if the robot will run into anything
-        match map.get(&(robot + dir)) {
-            None => {}
-            Some('#') => {
-                continue;
-            }
-            Some('[') => {
-                queue.push_back(robot + dir);
-                queue.push_back(robot + dir + 1);
-            }
-            Some(']') => {
-                queue.push_back(robot + dir);
-                queue.push_back(robot + dir - 1);
-            }
-            Some('O') => {
-                queue.push_back(robot + dir);
-            }
-            _ => panic!("Unexpected character!"),
-        }
+
+        let mut will_move = HashSet::new();
+        let mut queue = VecDeque::from(vec![robot]);
 
         // Check if boxes on the queue can be pushed. Early escape if not possible.
         while let Some(pos) = queue.pop_front() {
-            are_pushed.push(pos);
+            if !will_move.insert(pos) {
+                // This object has already been checked
+                continue;
+            }
 
             match (movement, map.get(&(pos + dir))) {
                 (_, None) => {}
@@ -125,37 +108,29 @@ fn simulate(
             }
         }
 
-        // Move the robot
+        // Move the global record of robot position
         robot = robot + dir;
-        // Move the affected boxes. To avoid overwriting: Move boxes in order of 
-        // furthest to closest in direction of movement.
-        are_pushed.sort_by_key(|pos| pos.real * dir.real + pos.imag * dir.imag);
-        are_pushed.dedup();
-        // Duplicates might be present even after .dedup(). Could use HashMap instead I check for Some() below.
-        for pos in are_pushed.iter().rev() {
-            if let Some(c) = map.remove(pos) {
-                map.insert(*pos + dir, c);
-            }
+        // Move the affected objects (which includes the robot in the map). To avoid
+        // overwriting: Move objects in order of furthest to closest in direction of movement.
+        let mut will_move: Vec<Complex<i32>> = will_move.into_iter().collect();
+        will_move.sort_by_key(|pos| -(pos.real * dir.real + pos.imag * dir.imag));
+
+        for pos in will_move {
+            let c = map.remove(&pos).unwrap();
+            map.insert(pos + dir, c);
         }
     }
 
-    return (map, robot);
+    return map;
 }
 
-fn map_to_string(
-    map: &HashMap<Complex<i32>, char>,
-    robot: &Complex<i32>,
-    bounds: &[usize],
-) -> String {
+fn map_to_string(map: &HashMap<Complex<i32>, char>, bounds: &[usize]) -> String {
     (0..bounds[1])
         .map(|y| {
             (0..bounds[0])
                 .map(|x| {
-                    let pos = x as i32 + I * y as i32;
-                    if let Some(&c) = map.get(&pos) {
+                    if let Some(&c) = map.get(&(x as i32 + I * y as i32)) {
                         c
-                    } else if &pos == robot {
-                        '@'
                     } else {
                         '.'
                     }
@@ -163,5 +138,7 @@ fn map_to_string(
                 .collect::<String>()
                 + "\n"
         })
-        .collect()
+        .collect::<String>()
+        .trim()
+        .to_string()
 }
