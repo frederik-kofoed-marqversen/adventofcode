@@ -23,7 +23,7 @@ fn main() {
     /*We use the safety factor as a measure for how likely a room is to be the easter
     egg. A lower safety factor corresponds to higher likelyhood.
 
-    The picture will loop every 101 * 103 = 10_403 time step, since this is the GCM
+    The picture will loop every 101 * 103 = 10_403 time step, since this is the LCM
     of the two dimensions of the room (these are twin primes). Therefore we seach all
     boards up until this time
 
