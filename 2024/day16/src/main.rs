@@ -20,7 +20,7 @@ fn main() {
 
     // Start and end turn out to be in the corners for both input and test data. Also, 
     // for input the end can only be reached by a single direction => single end state!
-    // This simplifies matters quite a lot.
+    // This simplifies matters a bit.
     let start = State {
         pos: (maze.data.len() as i32 - 2, 1),
         dir: (0, 1),
