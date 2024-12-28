@@ -24,8 +24,8 @@ pub fn run(use_test_input: bool) {
     of the two dimensions of the room (these are twin primes). Therefore we seach all
     boards up until this time
 
-    For my input the 8 most likely times in prioritised order turn out to be:
-    [7055, 5843, 793, 4328, 4025, 8570, 5641, 1399, ...]
+    For my input the most likely times in prioritised order turn out to be:
+    [7055, 5843, 793, ...]
     Indeed the most likely candidate t=7055 is the easter egg (The christmass tree
     is drawn entirely in a single quadrant).*/
 
@@ -38,7 +38,8 @@ pub fn run(use_test_input: bool) {
 
     // PART 2
     let mut prioritized_list: Vec<(usize, &i32)> = safety_factors.iter().enumerate().collect();
-    prioritized_list.sort_by(|a, b| a.1.cmp(b.1));
+    prioritized_list.sort_by_key(|(_, &val)| val);
+    println!("Result part 2: {}", prioritized_list[0].0);
     println!(
         "8 most likely times for easter egg in prioritized order:\n{:?}",
         &prioritized_list[..8]
@@ -47,7 +48,7 @@ pub fn run(use_test_input: bool) {
             .collect::<Vec<usize>>()
     );
 
-    // Visually search the most likely times for the easter egg
+    // Small terminal application to visually search the most likely times for the easter egg
     let mut robots = robots;
     let mut time = 0;
     let mut stdout = std::io::stdout();
