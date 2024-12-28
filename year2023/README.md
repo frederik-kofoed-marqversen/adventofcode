@@ -1,6 +1,6 @@
 # Advent of Code 2024 Solutions
 
-## Highlights from Some Days
+## Highlights
 
 - **Day 06**: Easy when noticing that the quadratic equation of motion can be solved analytically.
 - **Day 08**: Standard cycle detection puzzle. Then using the least common multiple (LCM) to find when they coincide.

@@ -1,6 +1,6 @@
 # Advent of Code 2024 Solutions
 
-## Highlights from Some Days
+## Highlights
 
 - **Day 03**: Leveraged clever regular expressions for parsing tricky inputs.
 - **Day 05**: A simple problem, solved using `Vec::sort_by()` with a custom comparator.

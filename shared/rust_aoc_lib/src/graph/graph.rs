@@ -50,19 +50,25 @@ where
         self.data[from][to].clone()
     }
 
-    // Add node to graph. Do nothing if already present.
-    pub fn add_node(&mut self, node: T) {
-        self.data.entry(node).or_insert(HashMap::new());
+    // Add node to graph. Returns wether the node was inserted or not.
+    pub fn add_node(&mut self, node: T) -> bool {
+        if self.data.contains_key(&node) {
+            return false;
+        } else {
+            self.data.insert(node, HashMap::new());
+            return true;
+        }
     }
 
     // Remove node and all its edges.
-    pub fn remove_node(&mut self, node: T) {
-        match self.data.remove(&node) {
-            None => {}
+    pub fn remove_node(&mut self, node: &T) -> Option<HashMap<T, U>> {
+        match self.data.remove(node) {
+            None => return None,
             Some(neighbours) => {
-                for (neighbour, _) in neighbours {
-                    self.remove_directed_edge(neighbour, node.clone());
+                for (neighbour, _) in &neighbours {
+                    self.remove_directed_edge(neighbour, node);
                 }
+                return Some(neighbours);
             }
         }
     }
@@ -75,10 +81,11 @@ where
             .or_insert(HashMap::new())
             .insert(to, weight);
     }
-    pub fn remove_directed_edge(&mut self, from: T, to: T) {
-        self.data.entry(from).and_modify(|x| {
-            x.remove(&to);
-        });
+    pub fn remove_directed_edge(&mut self, from: &T, to: &T) -> Option<U> {
+        match self.data.get_mut(from) {
+            Some(neighbours) => neighbours.remove(to),
+            None => None,
+        }
     }
 
     // Add edge u -> v and v -> u. Create nodes if not present.
@@ -86,9 +93,11 @@ where
         self.add_directed_edge(u.clone(), v.clone(), weight.clone());
         self.add_directed_edge(v, u, weight);
     }
-    pub fn remove_edge(&mut self, u: T, v: T) {
-        self.remove_directed_edge(u.clone(), v.clone());
-        self.remove_directed_edge(v, u);
+    pub fn remove_edge(&mut self, u: &T, v: &T) -> (Option<U>, Option<U>) {
+        (
+            self.remove_directed_edge(u, v),
+            self.remove_directed_edge(v, u),
+        )
     }
 }
 

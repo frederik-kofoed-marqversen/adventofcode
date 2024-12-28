@@ -18,7 +18,7 @@ where
     // Built flow graph.
     flow.add_node(source.clone());
     flow.add_node(sink.clone());
-    for node in graph.nodes::<Vec<_>>() {
+    for node in graph.iter() {
         for neighbour in graph.neighbours::<Vec<_>>(&node) {
             flow.add_edge(node.clone(), neighbour, U::ZERO);
         }
@@ -114,7 +114,7 @@ where
     }
     // The other subset contains all other nodes
     let g2 = flow
-        .nodes::<HashSet<_>>()
+        .nodes::<HashSet<T>>()
         .difference(&g1)
         .cloned()
         .collect();

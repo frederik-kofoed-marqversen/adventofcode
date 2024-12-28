@@ -68,7 +68,7 @@ fn compute_graph(map: &Vec<Vec<char>>, part2: bool) -> Graph {
             let node = (i, j);
             let c = map[i][j];
             if c == '#' {
-                graph.remove_node(node);
+                graph.remove_node(&node);
             } else if !part2 {
                 let bad_neighbours: Vec<(usize, usize)> = match c {
                     '>' => vec![(i + 1, j), (i - 1, j), (i, j - 1)],
@@ -79,18 +79,17 @@ fn compute_graph(map: &Vec<Vec<char>>, part2: bool) -> Graph {
                 };
 
                 for neighbour in bad_neighbours {
-                    graph.remove_directed_edge(node, neighbour);
+                    graph.remove_directed_edge(&node, &neighbour);
                 }
             }
         }
     }
 
-    let nodes: Vec<(usize, usize)> = graph.nodes();
-    for node in nodes {
+    for node in graph.nodes::<Vec<_>>() {
         let neighbours: Vec<(usize, usize)> = graph.neighbours(&node);
         if neighbours.len() == 2 {
             let combined_weight = graph[&node].values().sum();
-            graph.remove_node(node);
+            graph.remove_node(&node);
             graph.add_edge(neighbours[0], neighbours[1], combined_weight);
         }
     }

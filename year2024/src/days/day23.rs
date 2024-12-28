@@ -26,7 +26,7 @@ pub fn run(use_test_input: bool) {
                 }
             }
         }
-        temp.remove_node(node);
+        temp.remove_node(&node);
     }
 
     // PART 1

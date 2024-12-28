@@ -1,8 +1,10 @@
 mod max_flow_min_cut;
 mod pathfinding;
+mod max_clique;
 
 pub use max_flow_min_cut::*;
 pub use pathfinding::*;
+pub use max_clique::*;
 
 use super::Graph;
 
@@ -83,7 +85,7 @@ mod tests {
         for (i, row) in maze.iter().enumerate() {
             for (j, num) in row.iter().enumerate() {
                 if num == &1 {
-                    graph.remove_node((i, j));
+                    graph.remove_node(&(i, j));
                 }
             }
         }
