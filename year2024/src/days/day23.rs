@@ -1,6 +1,5 @@
 use rust_aoc_lib::graph::Graph;
-use std::collections::HashSet;
-use std::hash::Hash;
+use rust_aoc_lib::graph::algs::max_cliques;
 
 pub fn run(use_test_input: bool) {
     let input = super::read_input(23, use_test_input);
@@ -37,7 +36,7 @@ pub fn run(use_test_input: bool) {
     println!("Result part 1: {}", t_triangles.len());
 
     // PART 2
-    let maximal_cliques = max_cliques(HashSet::new(), network.nodes(), HashSet::new(), &network);
+    let maximal_cliques = max_cliques(network.nodes(), &network);
     let mut maximum_clique: Vec<&str> = maximal_cliques
         .iter()
         .max_by_key(|clique| clique.len())
@@ -48,38 +47,4 @@ pub fn run(use_test_input: bool) {
     maximum_clique.sort();
 
     println!("Result part 2: {}", maximum_clique.join(","));
-}
-
-// NP problem... This is simply brute force
-fn max_cliques<T: Hash + Eq + Copy + Clone>(
-    clique: HashSet<T>,
-    mut unchecked: HashSet<T>,
-    mut checked: HashSet<T>,
-    graph: &Graph<T, ()>,
-) -> Vec<HashSet<T>> {
-    if unchecked.is_empty() && checked.is_empty() {
-        return vec![clique];
-    }
-
-    let mut cliques = Vec::new();
-    while let Some(&node) = unchecked.iter().next() {
-        let mut new_clique = clique.clone();
-        new_clique.insert(node);
-
-        let new_unchecked =
-            HashSet::from_iter(unchecked.intersection(&graph.neighbours(&node)).cloned());
-        let new_checked =
-            HashSet::from_iter(checked.intersection(&graph.neighbours(&node)).cloned());
-
-        cliques.append(&mut max_cliques(
-            new_clique,
-            new_unchecked,
-            new_checked,
-            graph,
-        ));
-
-        unchecked.remove(&node);
-        checked.insert(node);
-    }
-    return cliques;
 }

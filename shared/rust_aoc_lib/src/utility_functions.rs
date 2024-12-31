@@ -76,13 +76,9 @@ pub fn crt_solve(n_vec: &Vec<i64>, a_vec: &Vec<i64>) -> Option<(i64, i64)> {
     // Returns tuple (a, n) such that all x (including x=a) for which x % n = a solves 
     // the simultaneous congruence relations: x = a_i mod n_i.
 
-    let eqs: Vec<(i64, i64)> = std::iter::zip(n_vec, a_vec)
-        .map(|(n, a)| (*n as i64, *a as i64))
-        .collect();
-
     let (mut n0, mut a0) = (1, 0);
-    for (n1, a1) in eqs {
-        let (gcd, m0, m1) = bezout(n0, n1);
+    for (n1, a1) in std::iter::zip(n_vec, a_vec) {
+        let (gcd, m0, m1) = bezout(n0, *n1);
         let mut x = a1 * m0 * n0 + a0 * m1 * n1;
         
         if gcd != 1 { // Non-coprime moduli

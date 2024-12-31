@@ -22,7 +22,7 @@
 - **Day 24**: Got to learn how to use the crate ndarray for linear algebra.
 
 ## Adding a New Solution
-To add a new solution simply run `./setup_day.sh N` with `N` the number of the day that should be added. This will both create the new solution file `dayNN.rs` and update both of `main.rs` and `mod.rs` accordingly.
+To add a new solution simply run `./setup_day.sh NN` with `NN` the number of the day that should be added. This will both create the new solution file `dayNN.rs` and update both of `main.rs` and `mod.rs` accordingly.
 
 ## Running a Solution
 

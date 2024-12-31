@@ -28,7 +28,6 @@ fn parse_args(args: Vec<String>) -> (u32, bool) {
     if args.len() == 2 {
         (day, false)
     } else if args.len() == 3 && ["-t", "--test"].contains(&args[2].as_str()) {
-        let day = args[1].parse().expect("Day must be an integer");
         (day, true)
     } else {
         eprintln!("{usage}");
