@@ -25,10 +25,10 @@ To add a new solution simply run `./setup_day.sh NN` with `NN` the number of the
 
 ## Running a Solution
 
-1. Create the directory `year2024/input/real/` and place the input files there, named `dayXX.txt`.
+1. Make sure to place the input files in the directory `year2024/input/real/` named `dayNN.txt`.
 2. To run a specific day's solution, use the following command, specifying the day and the test flag if needed:
 
     ```bash
     cargo run [--release] <day> [-t | --test]
     ```
-Replace <day> with the day number (e.g., 1 for Day 1) and use the -t or --test flag to run with test input instead of the real input.
+Replace <day> with the day number (e.g., 1 or day1) and use the -t or --test flag to run with test input instead of the real input.
