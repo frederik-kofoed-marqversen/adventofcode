@@ -1,5 +1,13 @@
 # Advent of Code 2024 Solutions
 
+## Structure
+
+- **`src/`**: Contains the `main.rs` executable for running the solutions.
+  - **`days/`**: Solutions for each individual day of the calendar.
+- **`input/`**: This folder is git-ignored but is where I store puzzle inputs locally.
+  - **`real/`**: Personal puzzle inputs.
+  - **`test/`**: Test/example inputs.
+
 ## Highlights
 
 - **Day 03**: Leveraged clever regular expressions for parsing tricky inputs.
@@ -10,6 +18,9 @@
 - **Day 19**: Proud of this very short solution, involving a custom cache key that ignores certain arguments.
 - **Day 23**: The NP-hard maximum clique problem solved with a brute force algorithm, now part of the graph module in the shared library.
 - **Day 24**: This one stumped me for a while. My solution requires manual inspection. I plan to revisit it once I learn how to use Z3.
+
+## Adding a New Solution
+To add a new solution simply run `./setup_day.sh N` with `N` the number of the day that should be added. This will both create the new solution file `dayNN.rs` and update both of `main.rs` and `mod.rs` accordingly.
 
 ## Running a Solution
 

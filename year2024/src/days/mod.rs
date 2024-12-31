@@ -30,6 +30,7 @@ pub mod day25;
 pub fn read_input(day: u32, read_test_input: bool) -> String {
     let project_dir = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set");
     let folder = if read_test_input { "test" } else { "real" };
-    let filename = format!("{project_dir}/input/{folder}/day{day:02}.txt");
+    let name_extention = if read_test_input { "_test" } else { "" };
+    let filename = format!("{project_dir}/input/{folder}/day{day:02}{name_extention}.txt");
     std::fs::read_to_string(&filename).expect(&format!("Failed to read input: {filename}"))
 }
