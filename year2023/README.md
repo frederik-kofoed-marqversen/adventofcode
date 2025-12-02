@@ -5,8 +5,8 @@
 - **`src/`**: Contains the `main.rs` executable for running the solutions.
   - **`days/`**: Solutions for each individual day of the calendar.
 - **`input/`**: This folder is git-ignored but is where I store puzzle inputs locally.
-  - **`real/`**: Personal puzzle inputs named `dayNN.txt`.
-  - **`test/`**: Test/example inputs named `dayNN_test.txt`.
+  - `dayNN.txt` (real input)
+  - `dayNN_test.txt` (test input)
 
 ## Highlights
 
@@ -26,7 +26,7 @@ To add a new solution simply run `./setup_day.sh NN` with `NN` the number of the
 
 ## Running a Solution
 
-1. Make sure to place the input files in the directory `year2024/input/real/` named `dayNN.txt`.
+1. Make sure to place the input files in the directory `year2023/input/` named `dayNN.txt` and `dayNN_test.txt`.
 2. To run a specific day's solution, use the following command, specifying the day and the test flag if needed:
 
     ```bash

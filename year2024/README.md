@@ -25,7 +25,7 @@ To add a new solution simply run `./setup_day.sh NN` with `NN` the number of the
 
 ## Running a Solution
 
-1. Make sure to place the input files in the directory `year2024/input/real/` named `dayNN.txt`.
+1. Make sure to place the input files in the directory `year2024/input/` named `dayNN.txt` and `dayNN_test.txt`.
 2. To run a specific day's solution, use the following command, specifying the day and the test flag if needed:
 
     ```bash

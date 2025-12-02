@@ -29,8 +29,7 @@ pub mod day25;
 /// `read_test_input` is a boolean indicating whether to use the test input (true) or real input (false).
 pub fn read_input(day: u32, read_test_input: bool) -> String {
     let project_dir = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set");
-    let folder = if read_test_input { "test" } else { "real" };
-    let name_extention = if read_test_input { "_test" } else { "" };
-    let filename = format!("{project_dir}/input/{folder}/day{day:02}{name_extention}.txt");
+    let suffix = if read_test_input { "_test" } else { "" };
+    let filename = format!("{project_dir}/input/day{day:02}{suffix}.txt");
     std::fs::read_to_string(&filename).expect(&format!("Failed to read input: {filename}"))
 }
