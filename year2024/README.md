@@ -4,9 +4,9 @@
 
 - **`src/`**: Contains the `main.rs` executable for running the solutions.
   - **`days/`**: Solutions for each individual day of the calendar.
-- **`input/`**: This folder is git-ignored but is where I store puzzle inputs locally.
-  - **`real/`**: Personal puzzle inputs.
-  - **`test/`**: Test/example inputs.
+- **`input/`**: Is where personal puzzle inputs are stored. Is git-ignored.
+  - `dayNN.txt` (real input)
+  - `dayNN_test.txt` (test input)
 
 ## Highlights
 
