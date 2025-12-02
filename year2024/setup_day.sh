@@ -57,7 +57,6 @@ echo "Created:"
 echo "  - $DAY_FILE"
 echo "  - input/day${DAY}.txt"
 echo "  - input/day${DAY}_test.txt"
-echo ""
 
 # Update mod.rs (register module)
 MODFILE="src/days/mod.rs"
