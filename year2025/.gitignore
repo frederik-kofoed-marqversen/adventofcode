@@ -1,0 +1,14 @@
+# Build artifacts
+bin/
+build/
+
+# Input files (personal puzzle inputs)
+input/
+
+# Compiled objects and prerequisites
+*.o
+*.d
+
+# Executables
+*.exe
+*.out

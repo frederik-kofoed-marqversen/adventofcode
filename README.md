@@ -10,6 +10,7 @@ This repository contains my solutions to the [**Advent of Code**](https://advent
 - **Year-Specific Directories**:
   - **`year2024/`**: Solutions implemented in Rust.
   - **`year2023/`**: Solutions implemented in Rust.
+  - **`year2025/`**: Solutions implemented in C++.
 
 ## Running Solutions
 
@@ -19,7 +20,12 @@ Inputs for each puzzle are not included in this repository, as they are unique t
 
 ## Languages Currently Include
 
-[![Rust][rust]][rust-url]
+[![Rust][rust]][rust-url]  
+[![C++][cpp]][cpp-url]
 
-[rust]: https://img.shields.io/badge/Rust-black?style=for-the-badge&logo=rust&logoColor=#E57324  
+[rust]: https://img.shields.io/badge/rust-%23000000.svg?style=for-the-badge&logo=rust&logoColor=white  
 [rust-url]: https://www.rust-lang.org/
+[cpp]: https://img.shields.io/badge/C++-%2300599C.svg?style=for-the-badge&logo=c%2B%2B&logoColor=white
+[cpp-url]: https://isocpp.org/
+
+
