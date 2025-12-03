@@ -1,7 +1,6 @@
 # Advent of Code 2025 Solutions
 
-## Notes
-This is the first year with only 12 problems. I used this year as an excuse to get started with C++.
+This is the first year with only 12 problems. This year I used AoC as an excuse to get started with C++.
 
 ## Structure
 
@@ -30,6 +29,5 @@ This will create:
 2. Run the solution:
 
 ```bash
-# Run with real input
 make run DAY=01 [TEST=1]
 ```
