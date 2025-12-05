@@ -2,8 +2,9 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <optional>
 
-bool removable(const std::vector<std::vector<char>> &data, size_t i, size_t j)
+bool is_removable(const std::vector<std::vector<char>> &data, size_t i, size_t j)
 {
     const char PAPER_ROLL = '@';
     int neighbours = 0;
@@ -23,13 +24,13 @@ bool removable(const std::vector<std::vector<char>> &data, size_t i, size_t j)
     return neighbours < 4;
 }
 
-std::pair<size_t, size_t> find_removable(const std::vector<std::vector<char>> &data)
+std::optional<std::pair<size_t, size_t>> find_removable(const std::vector<std::vector<char>> &data)
 {
     for (size_t i = 1; i < data.size() - 1; i++)
         for (size_t j = 1; j < data[0].size() - 1; j++)
-            if (removable(data, i, j))
-                return {i, j};
-    return {0, 0};
+            if (is_removable(data, i, j))
+                return std::make_pair(i, j);
+    return std::nullopt;
 }
 
 int main()
@@ -54,18 +55,16 @@ int main()
     int part1 = 0;
     for (size_t i = 1; i < data.size() - 1; i++)
         for (size_t j = 1; j < data[0].size() - 1; j++)
-            if (removable(data, i, j))
+            if (is_removable(data, i, j))
                 part1++;
 
     std::cout << "Part 1: " << part1 << "\n";
 
     // PART 2
     int part2 = 0;
-    while (true)
+    while (auto pos = find_removable(data))
     {
-        auto [i, j] = find_removable(data);
-        if (i == 0 && j == 0)
-            break;
+        auto [i, j] = *pos;
         data[i][j] = '.';
         part2++;
     }
