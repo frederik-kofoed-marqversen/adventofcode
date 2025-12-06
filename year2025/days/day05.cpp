@@ -10,6 +10,7 @@ void add_range(std::vector<std::pair<uint64_t, uint64_t>> &ranges, uint64_t a, u
     // lower_bound(value) which finds the first element >= value.
     // Method returns an iterator to the element
     // The method returns the insertion point for the new range [a, b] to keep the list sorted
+    // Default comparison for pair compares first element, then second element
     auto it = std::lower_bound(ranges.begin(), ranges.end(), std::make_pair(a, uint64_t(0)));
 
     // If a previous range exists, check for overlap
@@ -24,7 +25,7 @@ void add_range(std::vector<std::pair<uint64_t, uint64_t>> &ranges, uint64_t a, u
         }
     }
 
-    // All ranges that start before new range [a, b] ends overlap and thus need merging
+    // All ranges that start before the end of the new range [a, b] has overlap and thus need merging
     while (it != ranges.end() && it->first <= b + 1)
     {
         b = std::max(b, it->second);
