@@ -26,8 +26,9 @@ std::pair<std::vector<std::vector<std::vector<char>>>, std::vector<char>> parse_
             // Remove empty column from previous problem
             for (auto &row : problem)
                 row.pop_back();
-            // Store previous problem and start new one
+            // Store previous problem
             data.push_back(problem);
+            // Start new problem
             operations.push_back(op);
             problem = std::vector<std::vector<char>>(lines.size());
         }
@@ -101,15 +102,15 @@ int main()
     std::string line;
     while (std::getline(std::cin, line))
         lines.push_back(line);
-    auto [data, operations] = parse_input(lines);
+    auto [problems, operations] = parse_input(lines);
 
     uint64_t part1 = 0;
     uint64_t part2 = 0;
 
     // Solve each problem
-    for (size_t i = 0; i < data.size(); i++)
+    for (size_t i = 0; i < problems.size(); i++)
     {
-        auto problem = data[i];
+        auto problem = problems[i];
         auto operation = operations[i];
 
         part1 += solve_problem(problem, operation, false);
