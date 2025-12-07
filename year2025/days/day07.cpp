@@ -8,11 +8,12 @@
 int main()
 {
     std::string line;
+    
+    // Read initial line
     std::getline(std::cin, line);
 
-    // Count of beam splits
     int split_count = 0;
-    // Record of number of beams at each position
+    // Record the of number of beams at each position
     std::vector<u_int64_t> beams(line.size(), 0);
     beams[line.find('S')] = 1;
 
@@ -21,29 +22,25 @@ int main()
 
     while (std::getline(std::cin, line))
     {
-        std::vector<u_int64_t> new_beams = beams;
         for (size_t i = 0; i < line.size(); i++)
         {
             if (line[i] == '^')
             {
+                // Increment split_count only if beams are present
+                split_count += beams[i] > 0 ? 1 : 0;
                 // Split the beams at this position
-                new_beams[i - 1] += beams[i];
-                new_beams[i + 1] += beams[i];
-                new_beams[i] = 0;
-                split_count++;
+                beams[i - 1] += beams[i];
+                beams[i + 1] += beams[i];
+                beams[i] = 0;
             }
         }
-
-        // Update beam positions for next iteration
-        beams = new_beams;
 
         // Skip empty line
         std::getline(std::cin, line);
     }
 
     // PART 1
-    int part1 = split_count;
-    std::cout << "Part 1: " << part1 << "\n";
+    std::cout << "Part 1: " << split_count << "\n";
 
     // PART 2
     u_int64_t part2 = std::reduce(beams.begin(), beams.end(), uint64_t(0));
