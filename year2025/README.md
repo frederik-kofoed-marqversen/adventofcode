@@ -12,7 +12,7 @@ This is the first year with only 12 problems. This year I used AoC as an excuse 
 
 ## Highlights
 
-- **Day NN**: Something interesting about the problem
+- **Day 08**: First problem this year that had some interesting strategies. After my initial solve, I learned about DSU (Disjoint Set Union) which significantly speeds up the solution.
 
 ## Adding a New Solution
 
