@@ -70,8 +70,8 @@ int main()
     // Sort edges by distance ascending
     std::sort(edges.begin(), edges.end());
 
-    int64_t part1 = 0;
-    int64_t part2 = 0;
+    int64_t part1 = -1;
+    int64_t part2 = -1;
 
     // Use Disjoint Set Union to process edges
     DSU dsu(vertices.size());

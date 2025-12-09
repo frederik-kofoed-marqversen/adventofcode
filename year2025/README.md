@@ -13,15 +13,16 @@ This is the first year with only 12 problems. This year I used AoC as an excuse 
 ## Highlights
 
 - **Day 08**: First problem this year that had some interesting strategies. After my initial solve, I learned about DSU (Disjoint Set Union) which significantly speeds up the solution.
+- **Day 09**: Particularly interesting to me since the problem can be reduced it to an intersection test between an axis-aligned bounding box and a line segment which I am very familiar with via my ray-tracing project.
 
 ## Adding a New Solution
 
 To add a new solution, simply run `./setup_day.sh NN` with `NN` the number of the day:
 
 This will create:
-- `days/day03.cpp` with a template
-- `input/day03.txt` (empty, for your puzzle input)
-- `input/day03_test.txt` (empty, for test input)
+- `days/dayNN.cpp` with a template
+- `input/dayNN.txt` (empty, for your puzzle input)
+- `input/dayNN_test.txt` (empty, for test input)
 
 ## Building and Running Solutions
 
