@@ -1,6 +1,6 @@
 # Advent of Code 2025 Solutions
 
-This is the first year with only 12 problems. This year I used AoC as an excuse to get started with C++.
+This is the first year with only 12 problems. I used this installment of AoC as an excuse to get started with C++.
 
 ## Structure
 
@@ -12,8 +12,12 @@ This is the first year with only 12 problems. This year I used AoC as an excuse 
 
 ## Highlights
 
-- **Day 08**: First problem this year that had some interesting strategies. After my initial solve, I learned about DSU (Disjoint Set Union) which significantly speeds up the solution.
-- **Day 09**: Particularly interesting to me since the problem can be reduced it to an intersection test between an axis-aligned bounding box and a line segment which I am very familiar with via my ray-tracing project.
+- **Day 08**: First problem this year that had some interesting strategies. After my initial solve, I read about DSU (Disjoint Set Union) which significantly sped up the solution.
+- **Day 09**: Particularly interesting to me since the problem can be reduced it to an intersection test between an axis-aligned bounding box and a line segment which has direct associations to my ray-tracing project.
+- **Day 10**: 
+  Was not able to solve part 2. Simply applying BFS as in part 1 did not work. Then realised that the problem could be stated as solving the system of equations Ax = b. However, the columns of A (the buttons) are not linearly independent and thus the problem becomes an optimisation with objective that is the sum of x and constraint Ax = b. In other words, this is an integer linear programming problem that could be solved with e.g. Z3. Not wanting to bring in a large third party library, I consulted the Solution Megathread, only to find that this is the common solution. However, a few people did manage to optimise a DFS to a point where a solution is reached in reasonable time. Maybe I will return to this problem at some point.
+
+  Also learned that RegEx with C++ adds A LOT of compilation time. It is also quite verbose and thus does not lead to a significantly nicer solution compared to simply string parsing.
 
 ## Adding a New Solution
 
