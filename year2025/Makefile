@@ -1,6 +1,7 @@
 # Compiler and flags
 CXX := g++
 CXXFLAGS := -std=c++17 -Wall -Wextra -O2
+Z3_FLAGS := $(shell pkg-config --cflags --libs z3)
 
 # Directories
 DAYS_DIR := days
@@ -17,6 +18,10 @@ all: $(TARGETS)
 # Rule to build each day's executable
 $(BIN_DIR)/day%: $(DAYS_DIR)/day%.cpp | $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) $< -o $@
+
+# Special rule for day10 with Z3
+$(BIN_DIR)/day10: $(DAYS_DIR)/day10.cpp | $(BIN_DIR)
+	$(CXX) $(CXXFLAGS) $< -o $@ $(Z3_FLAGS)
 
 # Create bin directory if it doesn't exist
 $(BIN_DIR):

@@ -1,24 +1,24 @@
+#include <bitset>
 #include <iostream>
+#include <queue>
 #include <sstream>
 #include <string>
+#include <unordered_set>
 #include <vector>
-#include <queue>
-#include <map>
-#include <optional>
-#include <limits>
-#include <algorithm>
+#include <z3++.h>
+
+constexpr size_t MAX_SIZE = 64;
+using BitArr = std::bitset<MAX_SIZE>; // All zeros on initialization
 
 // BFS to find the minimum number of button presses to reach the target light configuration
-int num_button_presses(
-    const std::vector<std::vector<int>> &buttons,
-    std::vector<int> target)
+int solve_lights_bfs(const std::vector<BitArr> &buttons, const BitArr &target)
 {
-    std::map<std::vector<int>, int> visited;
-    std::queue<std::pair<std::vector<int>, int>> q;
+    std::unordered_set<BitArr> visited;
+    std::queue<std::pair<BitArr, int>> q;
 
-    std::vector<int> start(target.size(), 0);
+    BitArr start;
     q.push({start, 0});
-    visited.insert({start, -1});
+    visited.insert(start);
 
     while (!q.empty())
     {
@@ -27,10 +27,7 @@ int num_button_presses(
 
         for (size_t i = 0; i < buttons.size(); ++i)
         {
-            const auto &button = buttons[i];
-            std::vector<int> next = current;
-            for (size_t j : button)
-                next[j] ^= 1;
+            BitArr next = current ^ buttons[i];
 
             if (visited.find(next) != visited.end())
                 continue;
@@ -39,53 +36,94 @@ int num_button_presses(
             q.push({next, presses + 1});
 
             if (next == target)
-            {
                 return presses + 1;
-                std::vector<int> result;
-                // // Reconstruct the sequence of button presses
-                // while (visited[next] != -1)
-                // {
-                //     int button = visited[next];
-                //     result.push_back(button);
-                //     for (size_t j : buttons[button])
-                //         next[j] ^= 1;
-                // }
-                // return result;
-            }
         }
     }
 
     return -1;
 }
 
-std::vector<int> get_lights(const std::string &line)
+// Solve Ax = b with x >= 0, minimising sum(x) using Z3
+// Takes A in column-major format (A[i] is the i-th column)
+int solve_joltage_z3(
+    const std::vector<BitArr> &A,
+    const std::vector<int> &b)
+{
+    size_t num_col = A.size();
+    size_t num_rows = b.size();
+
+    z3::context c;
+    z3::optimize opt(c);
+
+    // Create variables x_i
+    std::vector<z3::expr> x;
+    for (size_t i = 0; i < num_col; ++i)
+    {
+        std::stringstream x_name;
+        x_name << "x_" << i;
+        x.push_back(c.int_const(x_name.str().c_str()));
+
+        // Add non-negativity constraint
+        opt.add(x[i] >= 0);
+    }
+
+    // Add constraints: Ax = b
+    for (size_t j = 0; j < num_rows; ++j)
+    {
+        z3::expr sum = c.int_val(0);
+        for (size_t i = 0; i < num_col; ++i)
+            // Check if button i affects position j using bitset test
+            if (A[i].test(j))
+                sum = sum + x[i];
+        opt.add(sum == c.int_val(b[j]));
+    }
+
+    // Objective: minimise sum(x)
+    z3::expr objective = c.int_val(0);
+    for (size_t i = 0; i < num_col; ++i)
+        objective = objective + x[i];
+    opt.minimize(objective);
+
+    // Solve and return minimised objective value
+    if (opt.check() == z3::sat)
+        return opt.get_model().eval(objective).get_numeral_int();
+    else
+        return -1;
+}
+
+BitArr get_lights(const std::string &line)
 {
     size_t start = line.find('[');
     size_t end = line.find(']');
     std::string content = line.substr(start + 1, end - start - 1);
 
-    std::vector<int> lights;
-    for (char c : content)
-        lights.push_back(c == '#' ? 1 : 0);
+    BitArr lights;
+    for (size_t i = 0; i < content.size(); ++i)
+        if (content[i] == '#')
+            lights.set(i);
     return lights;
 }
 
-std::vector<std::vector<int>> get_buttons(const std::string &line)
+std::vector<BitArr> get_buttons(const std::string &line)
 {
-    std::vector<std::vector<int>> buttons;
+    std::vector<BitArr> buttons;
+
     size_t start = 0;
     while ((start = line.find('(', start)) != std::string::npos)
     {
         size_t end = line.find(')', start);
         std::string content = line.substr(start + 1, end - start - 1);
-        std::vector<int> button_values;
         std::stringstream ss(content);
+
+        BitArr button;
         std::string value;
         while (std::getline(ss, value, ','))
-            button_values.push_back(std::stoi(value));
-        buttons.push_back(button_values);
+            button.set(std::stoi(value));
+
+        buttons.push_back(button);
         start = end + 1;
     }
+
     return buttons;
 }
 
@@ -116,7 +154,12 @@ int main()
         auto buttons = get_buttons(line);
         auto joltages = get_joltages(line);
 
-        part1 += num_button_presses(buttons, lights);
+        part1 += solve_lights_bfs(buttons, lights);
+
+        auto result = solve_joltage_z3(buttons, joltages);
+        if (result == -1)
+            std::cerr << "Warning: Non-satisfiable problem encountered\n";
+        part2 += result;
     }
 
     // PART 1

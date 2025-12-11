@@ -13,8 +13,6 @@ int64_t count_paths(const std::map<std::string, std::vector<std::string>> &graph
                     const std::string &end)
 {
     auto remaining_degree = in_degree; // Make a copy to modify
-
-    // BFS traversal for path counting starting from 'start'
     std::map<std::string, int64_t> path_count;
     path_count[start] = 1;
     // Since graph is a directed acyclic graph, at least one node will have in-degree 0.
