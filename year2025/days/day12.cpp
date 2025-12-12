@@ -13,25 +13,27 @@ enum Result
 
 Result check_problem(std::string line, const std::vector<int> &present_sizes)
 {
-    int h, w, count;
-    char c;
+    int region_height, region_width, present_count;
+    char c; // delimiters to be ignored
     std::stringstream ss(line);
-    ss >> h >> c >> w >> c;
+    ss >> region_height >> c >> region_width >> c;
 
-    int box_count = (h / 3) * (w / 3);
+    int box_count = (region_height / 3) * (region_width / 3);
 
-    int total_count = 0;
-    int min_area = 0;
+    int total_presents = 0;
+    int total_present_area = 0;
     for (size_t i = 0; i < present_sizes.size(); i++)
     {
-        ss >> count;
-        total_count += count;
-        min_area += present_sizes[i] * count;
+        ss >> present_count;
+        total_presents += present_count;
+        total_present_area += present_sizes[i] * present_count;
     }
 
-    if (min_area > h * w)
+    if (total_present_area > region_height * region_width)
+        // Trivially impossible
         return IMPOSSIBLE;
-    else if (total_count <= box_count)
+    else if (total_presents <= box_count)
+        // Trivially solvable
         return SOLVABLE;
     else
         return UNDECIDED;
