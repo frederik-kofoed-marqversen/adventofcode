@@ -32,5 +32,5 @@ This will create:
 2. Run the solution:
 
 ```bash
-make run DAY=01 [TEST=1]
+make run DAY=NN [TEST=1]
 ```
